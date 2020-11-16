@@ -195,6 +195,19 @@ class Parser(sly.Parser):
     @_('if_block')
     def statement(self, p):
         return ('statement', p[0])
+
+    @_('NAME COMMA return_vars')
+    def return_vars(self, p):
+        return ('return_vars', (('head', p[0]), ('tail', p[2])))
+
+    @_('NAME')
+    def return_vars(self, p):
+    	return ('return_vars', p[0])
+
+
+    @_('FUNCTION LSQR return_vars RSQR ASSIGN NAME LPAREN args RPAREN statements END NEWLINE')
+    def statement(self, p):
+    	return ('function_def', (('name', p[5]), ('return_vars', p[2]), ('args', p[7]), ('body', p[9])))
     
     #needed to parse provided test code
     @_('expr TRANSPOSE')
@@ -211,7 +224,6 @@ class Parser(sly.Parser):
 #try/catch
 #anonymous functions
 #unary postfix ops (transpose implemented)
-#function definitons/return (very rough)
 
 
 if __name__ == '__main__':

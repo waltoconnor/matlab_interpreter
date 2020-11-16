@@ -20,3 +20,9 @@ end
     matrix = [1 2 3; 4 5 6; 7 8 9];
     matrix_comma = [1, 2, 3; 4,5,6; 7 ,8 ,9];
     matrix_mixed = [1 2 3; 4, 5, 6; 7 8 9];
+
+function [a, b, c] = abcfunction(x, y ,z)
+	a = x;
+	y = b;
+	c = z;
+end
