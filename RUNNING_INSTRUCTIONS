@@ -1,0 +1,2 @@
+run with
+python3 ./interpreter/parser.py < ./test_code/basic_parser_test.m
