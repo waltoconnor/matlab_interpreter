@@ -2,6 +2,7 @@ import sys
 import sly
 from lexer import MatlabLexer
 import fileinput
+from ast_impl_classes import *
 
 
 #this file is derived from https://github.com/jol-jol/pymatlabparser/blob/master/pymatlabparser/matlab_parser.py
@@ -30,19 +31,19 @@ class Parser(sly.Parser):
 
     @_("statements")
     def program(self, p):
-        return ('program', p[0])
+        return Program(p[0])
 
     @_("statement statements")
     def statements(self, p):
-        return ('statements', (('head', p[0]), ('tail_list', p[1])))
+        return Statements_stmt_stmts(p[0], p[1])
 
     @_("statements statement")
     def statements(self, p):
-        return ('statements', (('head_list', p[0]), ('tail', p[1])))
+        return Statement_stmts_stmt(p[0], p[1])
 
     @_("statement")
     def statements(self, p):
-        return ('statement', p[0])
+        return Statements_stmt(p[0])
 
     @_("statement SEMICOLON", "statement NEWLINE")
     def statement(self, p):
@@ -50,23 +51,23 @@ class Parser(sly.Parser):
 
     @_("SEMICOLON", "NEWLINE")
     def statement(self, p):
-        return ('empty_statement')
+        return Statement_empty()
 
     @_("expr SEMICOLON", "expr NEWLINE")
     def statement(self, p):
-        return ('expr_statement', p[0])
+        return Statement_expr(p[0])
 
     @_("FOR assign statements END")
     def statement(self, p):
-        return ('for', (('for_assign', p[1]), ('for_body', p[2])))
+        return Statement_for(p[1], p[2])
     
     @_("assign")
     def statement(self, p):
-        return p[0]
+        return Statement_assign(p[0])
     
     @_("ref_expr ASSIGN expr")
     def assign(self, p):
-        return ('assign', (('assign_trgt', p[0]),('value', p[2])))
+        return Assign_ref_exp(p[0], p[2])
 
     @_("expr COLON expr")
     def expr(self, p):
@@ -78,7 +79,7 @@ class Parser(sly.Parser):
 
     @_("NAME")
     def ref_expr(self, p):
-        return ('NAME', p[0])
+        return RefExpr_name(Name(p[0]))
 
     @_("function_call")
     def ref_expr(self, p):
@@ -86,11 +87,11 @@ class Parser(sly.Parser):
 
     @_("NUMBER")
     def expr(self, p):
-        return ('NUMBER', p[0])
+        return Expr_number(p[0])
 
     @_("STRING")
     def expr(self, p):
-        return ('STRING', p[0])
+        return Expr_string(p[0])
     
     @_("PLUS expr", "MINUS expr", "NOT expr")
     def expr(self, p):
@@ -118,11 +119,11 @@ class Parser(sly.Parser):
        'expr MTIMES expr',  'expr MRDIVIDE expr',   'expr MLDIVIDE expr',   'expr TIMES expr',
        'expr RDIVIDE expr', 'expr LDIVIDE expr',    'expr POWER expr',  'expr MPOWER expr',) #list of binary ops copied from github
     def expr(self, p):
-        return ('bin_op', (('first', p[0]), ('op', p[1]), ('second', p[2])))
+        return Expr_binop(p[0], p[1], p[2])
     
     @_('LPAREN expr RPAREN')
     def expr(self, p):
-        return ('paren_expr', p[1])
+        return p[1]
 
     @_('expr DOT NAME')
     def expr(self, p):
@@ -244,4 +245,9 @@ if __name__ == '__main__':
     result = parser.parse(tokens)
         
 
-    print(result)
+    result.print()
+
+    ctx = Context()
+    final_ctx = result.eval(ctx)
+    print(final_ctx)
+    final_ctx.print()
