@@ -99,19 +99,19 @@ class Parser(sly.Parser):
 
     @_("NAME LPAREN args RPAREN")
     def function_call(self, p):
-        return ('fun_call', (('fun', p[0]), ('args', p[2])))
+        return RefExpr_function_call(p[0], p[2])
 
     @_("expr LPAREN RPAREN")
     def function_call(self, p):
-        return ('fun_call', (('fun', p[0])))
+        return RefExpr_function_call(p[0], None)
     
     @_("args COMMA expr")
     def args(self, p):
-        return ('args', (('head_list', p[0]), ('tail', p[2])))
+        return Args_args_expr(p[0], p[2])
     
     @_("expr")
     def args(self, p):
-        return ('args', ('value', p[0]))
+        return Args_expr(p[0])
 
     @_('expr OROR expr',    'expr ANDAND expr',     'expr OR expr',     'expr AND expr',
        'expr LT expr',      'expr LE expr',         'expr GT expr',     'expr GE expr',
@@ -131,19 +131,19 @@ class Parser(sly.Parser):
 
     @_('expr COMMA array_vals')
     def array_vals(self, p):
-        return ('array_vals', (('head', p[0]), ('tail', p[2])))
+        return ArrayVals_expr_array_vals(p[0], p[2])
     
     @_('expr array_vals')
     def array_vals(self, p):
-        return ('array_vals', (('head', p[0]),('tail', p[1])))
+        return ArrayVals_expr_array_vals(p[0], p[1])
     
     @_('expr')
     def array_vals(self, p):
-        return ('array_vals', p[0])
+        return ArrayVals_expr(p[0])
 
     @_('LSQR array_vals RSQR')
     def array_literal(self, p):
-        return ('array_literal', p[1])
+        return ArrayLiteral(p[1])
 
     @_('array_vals SEMICOLON')
     def matrix_row_inner(self, p):
@@ -248,6 +248,8 @@ if __name__ == '__main__':
     result.print()
 
     ctx = Context()
+    print("===== BEGIN PROGRAM =====")
     final_ctx = result.eval(ctx)
+    print("====== END PROGRAM ======")
     print(final_ctx)
     final_ctx.print()

@@ -1,27 +1,55 @@
 from ast_abstract_classes import *
+from std_lib import fn_table 
 
 class Context:
-    vars_ = {}
+    frames = None
+    functions = fn_table
 
     def __init__(self):
-        self.vars_ = {}
-        self.functions = {}
-    
-    def set_var(self, name, val):
-        self.vars_[name] = val
-    
-    def get_var(self, name):
-        if name not in self.vars_:
-            print("{} NOT FOUND IN DICT".format(name))
-            self.print()
-            return None
+        self.frames = [{}]
+        self.function_table = fn_table
 
-        return self.vars_[name]
+    def search_stack(self, name):
+        for f in reversed(self.frames):
+            if name in f.keys():
+                return f[name]
+        
+        return None
+    
+    def update_stack(self, name, value):
+        #if the value already exists on the stack, update it
+        for f in reversed(self.frames):
+            if name in f.keys():
+                f[name] = value
+        
+        #otherwise add it to the current frame
+        self.frames[-1][name] = value
+
+    def clear_var_in_frame(self, name):
+        del self.frames[-1][name]
+
+    def push_frame(self):
+        self.frames.append({})
+    
+    def pop_frame(self):
+        self.frames.pop(-1)
+
+    def get_fn(self, name):
+        return self.function_table[name]
+    
+    def has_fn(self, name):
+        return name in self.function_table
 
     def print(self):
-        print("vars:")
-        for k, v in self.vars_.items():
-            print("  {} = {}".format(k, v))
+        print("frames (bottom to top):")
+        for i, f in enumerate(self.frames):
+            print("===== frame {} ======".format(i))
+            for k, v in f.items():
+                print("  {} = {}".format(k, v))
+
+        print("function_table:")
+        for k, v in self.function_table.items():
+            print("  {}: {}".format(k, v))
 
 def indent_str(text, indent):
     s = ""
@@ -150,7 +178,7 @@ class Assign_ref_exp(Assign):
         self.ref_cache = self.ref.get_name()
         ctx3 = self.expr.eval(ctx2)
         self.expr_cache = self.expr.get_value()
-        ctx3.set_var(self.ref_cache, self.expr_cache)
+        ctx3.update_stack(self.ref_cache, self.expr_cache)
         return ctx3
     
     def get_ref(self):
@@ -190,14 +218,23 @@ class Statement_for(Statement):
         self.index_var = self.assign.get_ref()
         self.range_vals = self.assign.get_value()
 
+        ctx2.clear_var_in_frame(self.index_var)
         #at this point, the variable from the assign is set to the iteration range in ctx2, we need to overwrite that
 
         for elem in self.range_vals:
-            #SET (index_var, elem) TO CTX2
-            #ctx2.set((index_var, elem)) #this should functionally delete the assigned varaible while keeping the side effects of the assign
+            ctx2.push_frame()
+            ctx2.update_stack(self.index_var, elem)
             ctx2 = self.statements.eval(ctx2) #handle it like this to allow accumulators in the loop
+            ctx2.pop_frame()
 
         return ctx2 
+
+    def print(self, indent):
+        print(indent_str("For Loop (var = {}):".format(self.index_var), indent))
+        print(indent_str("-assign:", indent))
+        self.assign.print(indent+1)
+        print(indent_str("-body:", indent))
+        self.statements.print(indent+1)
 
 
 class Name:
@@ -241,6 +278,9 @@ class Expr_string(Expr):
 
     def get_value(self):
         return self.val
+
+    def print(self, indent):
+        print(indent_str("STRING: "+self.val, indent))
 
 class Expr_binop(Expr):
     left = None
@@ -301,6 +341,12 @@ class Args_args_expr(Args):
         
         return self.cached_value
 
+    def print(self, indent):
+        print(indent_str("args_head: ", indent))
+        self.args.print(indent + 1)
+        print(indent_str("arg_tail: ", indent))
+        self.expr.print(indent + 1)
+
 class Args_expr(Args):
     expr: Expr = None
 
@@ -321,11 +367,15 @@ class Args_expr(Args):
 
         return self.cached_value
 
+    def print(self, indent):
+        print(indent_str("arg: ", indent))
+        self.expr.print(indent + 1)
+
 class RefExpr_function_call(RefExpr):
     ref_id = None
     args = None
 
-    arg_val_cache = None
+    args_val_cache = None
     result_cache = None
 
     def __init__(self, name: Name, args: Args):
@@ -333,16 +383,29 @@ class RefExpr_function_call(RefExpr):
         self.args = args
 
     def eval(self, ctx):
-        ctx2 = self.args.eval(ctx)
-        self.arg_val_cache = self.args.get_values()
+        ctx2 = self.args.eval(ctx) if self.args != None else ctx
+        self.args_val_cache = self.args.get_values()
         #look up function of name self.name in ctx function table
-        if ctx2.function_table.has(self.name.get_value()):
-            #eval the found function with the given args
-            pass
+        
+        if ctx2.has_fn(self.ref_id):
+            fn = ctx2.get_fn(self.ref_id)
+            self.result_cache = fn(self.args_val_cache)
+            
         else:
             self.result_cache = None #ctx2.vars.get(self.name.get_value()).get_value()
 
         return ctx2
+
+    def get_value(self):
+        return self.result_cache
+    
+    def print(self, indent):
+        print(indent_str("function_call: "+self.ref_id, indent))
+        #print(indent_str("-name:", indent))
+        #self.ref_id.print(indent + 1)
+        print(indent_str("-args:", indent))
+        self.args.print(indent + 1)
+
 
 class RefExpr_name(RefExpr):
     ref_id = None
@@ -352,7 +415,7 @@ class RefExpr_name(RefExpr):
         self.ref_id = name
 
     def eval(self, ctx):
-        self.val = ctx.get_var(self.ref_id.get_value())
+        self.val = ctx.search_stack(self.ref_id.get_value())
         return ctx
     
     def get_value(self):
@@ -366,3 +429,69 @@ class RefExpr_name(RefExpr):
         self.ref_id.print(indent + 1)
         
 
+class ArrayVals_expr(ArrayVals):
+    expr = None
+    result_cache = None
+
+    def __init__(self, expr: Expr):
+        self.expr = expr
+    
+    def eval(self, ctx):
+        ctx2 = self.expr.eval(ctx)
+        self.result_cache = self.expr.get_value()
+
+        return ctx2
+    
+    def get_values(self):
+        return [self.result_cache]
+    
+    def print(self, indent):
+        print(indent_str("ArrayVal expr:", indent))
+        self.expr.print(indent + 1)
+
+class ArrayVals_expr_array_vals(ArrayVals):
+    expr = None
+    array_vals: ArrayVals = None
+
+    result_cache = None
+
+    def __init__(self, expr: Expr, array_vals: ArrayVals):
+        self.expr = expr
+        self.array_vals = array_vals
+    
+    def eval(self, ctx):
+        ctx2 = self.expr.eval(ctx)
+        ctx3 = self.array_vals.eval(ctx2)
+
+        self.result_cache = [self.expr.get_value()] + self.array_vals.get_values()
+
+        return ctx3
+    
+    def get_values(self):
+        return self.result_cache
+    
+    def print(self, indent):
+        print(indent_str("ArrayVal expr:", indent))
+        print(indent_str("-head:", indent))
+        self.expr.print(indent + 1)
+        print(indent_str("-tail:", indent))
+        self.array_vals.print(indent + 1)
+
+class ArrayLiteral:
+    array_vals = None
+    result_cache = None
+
+    def __init__(self, values: ArrayVals):
+        self.array_vals = values
+    
+    def eval(self, ctx):
+        ctx2 = self.array_vals.eval(ctx)
+        self.result_cache = self.array_vals.get_values()
+        return ctx2
+    
+    def get_value(self):
+        return self.result_cache
+    
+    def print(self, indent):
+        print(indent_str("ArrayLiteral:", indent))
+        self.array_vals.print(indent + 1)
