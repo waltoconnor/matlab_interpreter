@@ -178,8 +178,8 @@ class Assign_ref_exp(Assign):
         self.ref_cache = self.ref.get_name()
         ctx3 = self.expr.eval(ctx2)
         self.expr_cache = self.expr.get_value()
-        ctx3.update_stack(self.ref_cache, self.expr_cache)
-        return ctx3
+        ctx4 = self.ref.set_value(ctx3, self.expr_cache)
+        return ctx4
     
     def get_ref(self):
         if self.ref_cache == None:
@@ -299,7 +299,18 @@ class Expr_binop(Expr):
         ctx3 = self.right.eval(ctx2)
 
         ops = {
-            '+': (lambda a,b: a+b)
+            '+': (lambda a,b: a+b),
+            '-': (lambda a,b: a-b),
+            '*': (lambda a,b: a*b),
+            '/': (lambda a,b: a/b),
+            '<': (lambda a,b: 1 if a < b else 0),
+            '>': (lambda a,b: 1 if a > b else 0),
+            '<=': (lambda a,b: 1 if a <= b else 0),
+            '>=': (lambda a,b: 1 if a >= b else 0),
+            '==': (lambda a,b: 1 if a == b else 0),
+            '~=': (lambda a,b: 1 if a != b else 0),
+            '||': (lambda a,b: 1 if a == 1 or b == 1 else 0),
+            '&&': (lambda a,b: 1 if a == 1 and b == 1 else 0)
         }
         self.result = ops[self.op](self.left.get_value(), self.right.get_value())
         
@@ -331,7 +342,7 @@ class Args_args_expr(Args):
     def eval(self, ctx):
         ctx2 = self.args.eval(ctx)
         ctx3 = self.expr.eval(ctx2)
-        self.cached_value = self.args.get_values()[:].append(self.expr.get_value())
+        self.cached_value = self.args.get_values() + [self.expr.get_value()]
         return ctx3
     
     def get_values(self):
@@ -378,6 +389,8 @@ class RefExpr_function_call(RefExpr):
     args_val_cache = None
     result_cache = None
 
+    is_array = False
+
     def __init__(self, name: Name, args: Args):
         self.ref_id = name
         self.args = args
@@ -390,14 +403,35 @@ class RefExpr_function_call(RefExpr):
         if ctx2.has_fn(self.ref_id):
             fn = ctx2.get_fn(self.ref_id)
             self.result_cache = fn(self.args_val_cache)
+            self.is_array = False
             
         else:
-            self.result_cache = None #ctx2.vars.get(self.name.get_value()).get_value()
+            arr = ctx2.search_stack(self.ref_id)
+            self.is_array = True
+            self.result_cache = arr
 
         return ctx2
 
     def get_value(self):
         return self.result_cache
+    
+    def set_value(self, ctx, value):
+        if self.is_array is False:
+            print("ERROR: TRIED TO SET VALUE OF FUNCTION EVALUATION")
+            return ctx
+        
+        #if we are here, we need to set an array value
+        indexes = self.args_val_cache
+        cur_arr = ctx.search_stack(self.ref_id)
+        temp_arr = cur_arr
+        for i in range(0, len(indexes) - 1):
+            temp_arr = temp_arr[int(indexes[i])]
+
+        temp_arr[int(indexes[-1])] = value
+        return ctx
+
+    def get_name(self):
+        return self.ref_id
     
     def print(self, indent):
         print(indent_str("function_call: "+self.ref_id, indent))
@@ -423,6 +457,10 @@ class RefExpr_name(RefExpr):
     
     def get_name(self):
         return self.ref_id.get_value()
+
+    def set_value(self, ctx, value):
+        ctx.update_stack(self.get_name(), value)
+        return ctx
 
     def print(self, indent):
         print(indent_str("RefExpr_name:", indent))
@@ -495,3 +533,235 @@ class ArrayLiteral:
     def print(self, indent):
         print(indent_str("ArrayLiteral:", indent))
         self.array_vals.print(indent + 1)
+
+class IfStatement_no_else(IfStatement):
+    cond = None
+    tblock = None
+
+    def __init__(self, cond, tblock):
+        self.cond = cond
+        self.tblock = tblock
+    
+    def eval(self, ctx):
+        ctx2 = self.cond.eval(ctx)
+        ctx3 = ctx2
+        if self.cond.get_value() > 0: #0 is false, other is true
+            ctx3 = self.tblock.eval(ctx2)
+        
+        return ctx3
+    
+    def print(self, indent):
+        print(indent_str("If no else:", indent))
+        print(indent_str("-condition:", indent))
+        self.cond.print(indent + 1)
+        print(indent_str("-true block:", indent))
+        self.tblock.print(indent + 1)
+        
+
+class IfStatement_else(IfStatement):
+    cond = None
+    tblock = None
+    fblock = None
+
+    def __init__(self, cond, tblock, fblock):
+        self.cond = cond
+        self.tblock = tblock
+        self.fblock = fblock
+    
+    def eval(self, ctx):
+        ctx2 = self.cond.eval(ctx)
+        ctx3 = ctx2
+        if self.cond.get_value() > 0: #0 is false, other is true
+            ctx3 = self.tblock.eval(ctx2)
+        else:
+            ctx3 = self.fblock.eval(ctx2)
+        
+        return ctx3
+    
+    def print(self, indent):
+        print(indent_str("If else:", indent))
+        print(indent_str("-condition:", indent))
+        self.cond.print(indent + 1)
+        print(indent_str("-true block:", indent))
+        self.tblock.print(indent + 1)
+        print(indent_str("-false block:", indent))
+        self.fblock.print(indent + 1)
+
+class IfStatement_elseif(IfStatement):
+    cond = None
+    tblock = None
+    elseif = None
+
+    def __init__(self, cond, tblock, elseif):
+        self.cond = cond
+        self.tblock = tblock
+        self.elseif = elseif
+
+    def eval(self, ctx):
+        ctx2 = self.cond.eval(ctx)
+        if self.cond.get_value() > 0:
+            return self.tblock.eval(ctx2)
+        else:
+            return self.elseif.eval(ctx2)
+
+    def print(self, indent):
+        print(indent_str("If elseif:", indent))
+        print(indent_str("-condition:", indent))
+        self.cond.print(indent + 1)
+        print(indent_str("-true block:", indent))
+        self.tblock.print(indent + 1)
+        print(indent_str("-false elseif:", indent))
+        self.elseif.print(indent + 1)
+
+class Elseif_elseif:
+    cond = None
+    tblock = None
+    elseif = None
+
+    def __init__(self, cond, tblock, elseif):
+        self.cond = cond
+        self.tblock = tblock
+        self.elseif = elseif
+
+    def eval(self, ctx):
+        ctx2 = self.cond.eval(ctx)
+        if self.cond.get_value() > 0:
+            return self.tblock.eval(ctx2)
+        else:
+            return self.elseif.eval(ctx2)
+
+    def print(self, indent):
+        print(indent_str("Elseif elseif:", indent))
+        print(indent_str("-condition:", indent))
+        self.cond.print(indent + 1)
+        print(indent_str("-true block:", indent))
+        self.tblock.print(indent + 1)
+        print(indent_str("-false elseif:", indent))
+        self.elseif.print(indent + 1)
+
+class Elseif_else:
+    cond = None
+    tblock = None
+    fblock = None
+
+    def __init__(self, cond, tblock, fblock):
+        self.cond = cond
+        self.tblock = tblock
+        self.fblock = fblock
+    
+    def eval(self, ctx):
+        ctx2 = self.cond.eval(ctx)
+        ctx3 = ctx2
+        if self.cond.get_value() > 0: #0 is false, other is true
+            ctx3 = self.tblock.eval(ctx2)
+        else:
+            ctx3 = self.fblock.eval(ctx2)
+        
+        return ctx3
+    
+    def print(self, indent):
+        print(indent_str("Elseif else:", indent))
+        print(indent_str("-condition:", indent))
+        self.cond.print(indent + 1)
+        print(indent_str("-true block:", indent))
+        self.tblock.print(indent + 1)
+        print(indent_str("-false block:", indent))
+        self.fblock.print(indent + 1)
+
+class ArrayColon(Expr):
+    left = None
+    right = None
+
+    val_cache = None
+
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def eval(self, ctx):
+        ctx2 = self.left.eval(ctx)
+        ctx3 = self.right.eval(ctx2)
+
+        self.val_cache = list(range(int(self.left.get_value()), int(self.right.get_value())))
+        return ctx3
+    
+    def get_value(self):
+        return self.val_cache
+    
+    def print(self, indent):
+        print(indent_str("ArrayLiteral colon:", indent))
+        print(indent_str("-left:", indent))
+        self.left.print(indent + 1)
+        print(indent_str("-right:", indent))
+        self.right.print(indent + 1)
+
+class MatrixRowInner_arr_vals(MatrixRowInner):
+    arr_vals = None
+    val_cache = None
+
+    def __init__(self, arr_vals):
+        self.arr_vals = arr_vals
+
+    def eval(self, ctx):
+        ctx2 = self.arr_vals.eval(ctx)
+        self.val_cache = self.arr_vals.get_values()
+        return ctx2
+    
+    def get_values(self):
+        return self.val_cache
+    
+    def print(self, indent):
+        print(indent_str("Matrix Row arr vals:", indent))
+        print(indent_str("-arr vals:", indent))
+        self.arr_vals.print(indent + 1)
+
+class MatrixRowInner_mri_arr_vals(MatrixRowInner):
+    mri_head = None
+    arr_vals = None
+    val_cache = None
+
+    def __init__(self, head, arr_vals):
+        self.arr_vals = arr_vals
+        self.mri_head = head
+
+    def eval(self, ctx):
+        ctx2 = self.mri_head.eval(ctx)
+        ctx3 = self.arr_vals.eval(ctx2)
+        self.val_cache = self.mri_head.get_values() + [self.arr_vals.get_values()]
+        return ctx3
+    
+    def get_values(self):
+        return self.val_cache
+    
+    def print(self, indent):
+        print(indent_str("Matrix Row mri arr vals:", indent))
+        print(indent_str("-mri_head:", indent))
+        self.mri_head.print(indent + 1)
+        print(indent_str("-arr vals:", indent))
+        self.arr_vals.print(indent + 1)
+        
+
+class MatrixLiteral:
+    mri_head = None
+    arr_vals = None
+    val_cache = None
+
+    def __init__(self, head, arr_vals):
+        self.arr_vals = arr_vals
+        self.mri_head = head
+
+    def eval(self, ctx):
+        ctx2 = self.mri_head.eval(ctx)
+        ctx3 = self.arr_vals.eval(ctx2)
+        self.val_cache = self.mri_head.get_values() + [self.arr_vals.get_values()]
+        return ctx3
+    
+    def get_value(self):
+        return self.val_cache
+    
+    def print(self, indent):
+        print(indent_str("Matrix Row mri arr vals:", indent))
+        print(indent_str("-mri_head:", indent))
+        self.mri_head.print(indent + 1)
+        print(indent_str("-arr vals:", indent))
+        self.arr_vals.print(indent + 1)

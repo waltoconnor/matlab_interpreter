@@ -71,7 +71,7 @@ class Parser(sly.Parser):
 
     @_("expr COLON expr")
     def expr(self, p):
-        return ('array_colon', (('head', p[0]), ('tail', p[2])))
+        return ArrayColon(p[0], p[2])
 
     @_("ref_expr")
     def expr(self, p):
@@ -147,15 +147,15 @@ class Parser(sly.Parser):
 
     @_('array_vals SEMICOLON')
     def matrix_row_inner(self, p):
-        return ('matrix_row_inner', p[0])
+        return MatrixRowInner_arr_vals(p[0])
     
     @_('matrix_row_inner array_vals SEMICOLON')
     def matrix_row_inner(self, p):
-        return ('matrix_row_inner', (('head', p[0]), ('tail', p[1])))
+        return MatrixRowInner_mri_arr_vals(p[0], p[1])
     
     @_('LSQR matrix_row_inner array_vals RSQR')
     def matrix_literal(self, p):
-        return ('matrix_literal', (('head', p[1]), ('tail', p[2])))
+        return MatrixLiteral(p[1], p[2])
     
     @_('matrix_literal')
     def expr(self, p):
@@ -175,27 +175,27 @@ class Parser(sly.Parser):
 
     @_('IF expr NEWLINE statements END')
     def if_block(self, p):
-        return ('if', (('cond', p[1]), ('body', p[3])))
+        return IfStatement_no_else(p[1], p[3])
     
     @_('IF expr NEWLINE statements elseif_block')
     def if_block(self, p):
-        return ('if', (('cond', p[1]), ('body', p[3]), ('elseif'), p[4]))
+        return IfStatement_elseif(p[1], p[3], p[4])
     
     @_('IF expr NEWLINE statements ELSE statements END')
     def if_block(self, p):
-        return ('if', (('cond', p[1]), ('body', p[3]), ('else', p[5])))
+        return IfStatement_else(p[1], p[3], p[5])
 
     @_('ELSEIF expr NEWLINE statements elseif_block')
     def elseif_block(self, p):
-        return ('elseif', (('cond', p[1]), ('body', p[3]), ('elseif', p[4])))
+        return Elseif_elseif(p[1], p[3], p[4])
     
     @_('ELSEIF expr NEWLINE statements ELSE NEWLINE statements END')
     def elseif_block(self, p):
-        return ('elseif', (('cond', p[1]), ('body', p[3]), ('else_body', p[6])))
+        return Elseif_else(p[1], p[3], p[6])
 
     @_('if_block')
     def statement(self, p):
-        return ('statement', p[0])
+        return p[0]
 
     @_('NAME COMMA return_vars')
     def return_vars(self, p):

@@ -26,3 +26,31 @@ for i = [1 2 3 4]
         print("    " + str(i))
     end
 end
+
+print("IF TEST")
+test_var = 3
+print("set test_var to 3")
+if test_var > 2
+    print("test_var was greater than 2")
+end
+
+arr = [1, 2, 3, 4]
+
+arr(2) = 10
+
+print(arr)
+
+if test_var > 4
+    print("test var was greater than 4 (if)")
+elseif test_var ~= 3
+    print("test var not equal to 3 (elseif)")
+else
+    print("hit else block")
+end
+
+
+mat = [3:6; 1, 2, 3; a b c]
+print(mat)
+print("running mat(1,2)=100")
+mat(1, 2) = 100
+print(mat)

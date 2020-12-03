@@ -43,6 +43,10 @@ class RefExpr(ABC):
     def eval(self, ctx):
         pass
 
+    @abstractmethod
+    def set_value(self, ctx):
+        pass
+
 class FunctionCall(ABC):
 
     @abstractmethod
