@@ -25,62 +25,70 @@
 % http://web.mit.edu/dryfoo/Funny-pages/shakespeare-insult-kit.html
 % You can add your own adjectives and nouns, of course.
 % ->  Thou, "adjective 1" "adjective 2" "noun"
-W = {
-    'artless'     , 'base-court'     , 'apple-john'    ;
-    'bawdy'       , 'bat-fowling'    , 'baggage'       ;
-    'beslubbering', 'beef-witted'    , 'barnacle'      ;
-    'bootless'    , 'beetle-headed'  , 'bladder'       ;
-    'churlish'    , 'boil-brained'   , 'boar-pig'      ;
-    'cockered'    , 'clapper-clawed' , 'bugbear'       ;
-    'clouted'     , 'clay-brained'   , 'bum-bailey'    ;
-    'craven'      , 'common-kissing' , 'canker-blossom';
-    'currish'     , 'crook-pated'    , 'clack-dish'    ;
-    'dankish'     , 'dismal-dreaming', 'clotpole'      ;
-    'dissembling' , 'dizzy-eyed'     , 'coxcomb'       ;
-    'droning'     , 'doghearted'     , 'codpiece'      ;
-    'errant'      , 'dread-bolted'   , 'death-token'   ;
-    'fawning'     , 'earth-vexing'   , 'dewberry'      ;
-    'fobbing'     , 'elf-skinned'    , 'flap-dragon'   ;
-    'froward'     , 'fat-kidneyed'   , 'flax-wench'    ;
-    'frothy'      , 'fen-sucked'     , 'flirt-gill'    ;
-    'gleeking'    , 'flap-mouthed'   , 'foot-licker'   ;
-    'goatish'     , 'fly-bitten'     , 'fustilarian'   ;
-    'gorbellied'  , 'folly-fallen'   , 'giglet'        ;
-    'impertinent' , 'fool-born'      , 'gudgeon'       ;
-    'infectious'  , 'full-gorged'    , 'haggard'       ;
-    'jarring'     , 'guts-griping'   , 'harpy'         ;
-    'loggerheaded', 'half-faced'     , 'hedge-pig'     ;
-    'lumpish'     , 'hasty-witted'   , 'horn-beast'    ;
-    'mammering'   , 'hedge-born'     , 'hugger-mugger' ;
-    'mangled'     , 'hell-hated'     , 'joithead'      ;
-    'mewling'     , 'idle-headed'    , 'lewdster'      ;
-    'paunchy'     , 'ill-breeding'   , 'lout'          ;
-    'pribbling'   , 'ill-nurtured'   , 'maggot-pie'    ;
-    'puking'      , 'knotty-pated'   , 'malt-worm'     ;
-    'puny'        , 'milk-livered'   , 'mammet'        ;
-    'qualling'    , 'motley-minded'  , 'measle'        ;
-    'rank'        , 'onion-eyed'     , 'minnow'        ;
-    'reeky'       , 'plume-plucked'  , 'miscreant'     ;
-    'roguish'     , 'pottle-deep'    , 'moldwarp'      ;
-    'ruttish'     , 'pox-marked'     , 'mumble-news'   ;
-    'saucy'       , 'reeling-ripe'   , 'nut-hook'      ;
-    'spleeny'     , 'rough-hewn'     , 'pigeon-egg'    ;
-    'spongy'      , 'rude-growing'   , 'pignut'        ;
-    'surly'       , 'rump-fed'       , 'puttock'       ;
-    'tottering'   , 'shard-borne'    , 'pumpion'       ;
-    'unmuzzled'   , 'sheep-biting'   , 'ratsbane'      ;
-    'vain'        , 'spur-galled'    , 'scut'          ;
-    'venomed'     , 'swag-bellied'   , 'skainsmate'    ;
-    'villainous'  , 'tardy-gaited'   , 'strumpet'      ;
-    'warped'      , 'tickle-brained' , 'varlot'        ;
-    'wayward'     , 'toad-spotted'   , 'vassal'        ;
-    'weedy'       , 'unchin-snouted' , 'whey-face'     ;
-    'yeasty'      , 'weather-bitten' , 'wagtail'       } ;
- r = randi(size(W,1),1,3) ;  % select three row indices
+W = [ 'artless' , 'base-court' , 'apple-john'; 'bawdy' , 'bat-fowling' , 'baggage'; 'beslubbering', 'beef-witted' , 'barnacle' ];
+
+%W = [
+%    'artless'     , 'base-court'     , 'apple-john'    ;
+%    'bawdy'       , 'bat-fowling'    , 'baggage'       ;
+%    'beslubbering', 'beef-witted'    , 'barnacle'      ;
+%    'bootless'    , 'beetle-headed'  , 'bladder'       ;
+%    'churlish'    , 'boil-brained'   , 'boar-pig'      ;
+%    'cockered'    , 'clapper-clawed' , 'bugbear'       ;
+%    'clouted'     , 'clay-brained'   , 'bum-bailey'    ;
+%    'craven'      , 'common-kissing' , 'canker-blossom';
+%    'currish'     , 'crook-pated'    , 'clack-dish'    ;
+%    'dankish'     , 'dismal-dreaming', 'clotpole'      ;
+%    'dissembling' , 'dizzy-eyed'     , 'coxcomb'       ;
+%    'droning'     , 'doghearted'     , 'codpiece'      ;
+%    'errant'      , 'dread-bolted'   , 'death-token'   ;
+%    'fawning'     , 'earth-vexing'   , 'dewberry'      ;
+%    'fobbing'     , 'elf-skinned'    , 'flap-dragon'   ;
+%    'froward'     , 'fat-kidneyed'   , 'flax-wench'    ;
+%    'frothy'      , 'fen-sucked'     , 'flirt-gill'    ;
+%    'gleeking'    , 'flap-mouthed'   , 'foot-licker'   ;
+%    'goatish'     , 'fly-bitten'     , 'fustilarian'   ;
+%    'gorbellied'  , 'folly-fallen'   , 'giglet'        ;
+%    'impertinent' , 'fool-born'      , 'gudgeon'       ;
+%    'infectious'  , 'full-gorged'    , 'haggard'       ;
+%    'jarring'     , 'guts-griping'   , 'harpy'         ;
+%    'loggerheaded', 'half-faced'     , 'hedge-pig'     ;
+%    'lumpish'     , 'hasty-witted'   , 'horn-beast'    ;
+%    'mammering'   , 'hedge-born'     , 'hugger-mugger' ;
+%    'mangled'     , 'hell-hated'     , 'joithead'      ;
+%    'mewling'     , 'idle-headed'    , 'lewdster'      ;
+%    'paunchy'     , 'ill-breeding'   , 'lout'          ;
+%    'pribbling'   , 'ill-nurtured'   , 'maggot-pie'    ;
+%    'puking'      , 'knotty-pated'   , 'malt-worm'     ;
+%    'puny'        , 'milk-livered'   , 'mammet'        ;
+%    'qualling'    , 'motley-minded'  , 'measle'        ;
+%    'rank'        , 'onion-eyed'     , 'minnow'        ;
+%    'reeky'       , 'plume-plucked'  , 'miscreant'     ;
+%    'roguish'     , 'pottle-deep'    , 'moldwarp'      ;
+%    'ruttish'     , 'pox-marked'     , 'mumble-news'   ;
+%    'saucy'       , 'reeling-ripe'   , 'nut-hook'      ;
+%    'spleeny'     , 'rough-hewn'     , 'pigeon-egg'    ;
+%    'spongy'      , 'rude-growing'   , 'pignut'        ;
+%    'surly'       , 'rump-fed'       , 'puttock'       ;
+%    'tottering'   , 'shard-borne'    , 'pumpion'       ;
+%    'unmuzzled'   , 'sheep-biting'   , 'ratsbane'      ;
+%    'vain'        , 'spur-galled'    , 'scut'          ;
+%    'venomed'     , 'swag-bellied'   , 'skainsmate'    ;
+%    'villainous'  , 'tardy-gaited'   , 'strumpet'      ;
+%    'warped'      , 'tickle-brained' , 'varlot'        ;
+%    'wayward'     , 'toad-spotted'   , 'vassal'        ;
+%    'weedy'       , 'unchin-snouted' , 'whey-face'     ;
+%    'yeasty'      , 'weather-bitten' , 'wagtail'       
+%    ] ;
+ %r = randi(size(W,1),1,3) ;  % select three row indices
  % concatenate into a single string
- S = ['Thou, ' W{r(1),1} ' ' W{r(2),2} ' ' W{r(3),3} '!'] ;
+ %S = ['Thou, ' W[r(1),1] ' ' W[r(2),2] ' ' W[r(3),3] '!'] ;
+ S1 = ['Thou, ' W(1) ' ' W(2) ' ' W(3) '!'] ;
+ %S2 = ['Thou, ' W(1) ' ' W(4,2) ' ' W(5S,3) '!'] ;
+ %S3 = ['Thou, ' W(1,1) ' ' W(2,2) ' ' W(3,3) '!'] ;
  
- disp(' ') ;
- disp(['  ' S]) ;
- disp(' ') ;
+ print(' ') ;
+ print(['  ' S1]) ;
+ %print(['  ' S2]) ;
+ %%print(['  ' S3]) ;
+ print(' ') ;
  
