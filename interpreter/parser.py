@@ -231,9 +231,14 @@ if __name__ == '__main__':
     lexer = MatlabLexer()
     parser = Parser()
 
+    #text = ""
+    #for line in fileinput.input():
+    #    text += line
+
     text = ""
-    for line in fileinput.input():
-        text += line
+    print(sys.argv)
+    with open(sys.argv[1], 'r') as f:
+        text = '\n'.join(f.readlines())
 
     print("INPUT TEXT:")
     print(text)

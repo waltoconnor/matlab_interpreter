@@ -408,7 +408,14 @@ class RefExpr_function_call(RefExpr):
         else:
             arr = ctx2.search_stack(self.ref_id)
             self.is_array = True
-            self.result_cache = arr
+
+            indexes = self.args_val_cache
+            cur_arr = ctx.search_stack(self.ref_id)
+            temp_arr = cur_arr
+            for i in range(0, len(indexes) - 1):
+                temp_arr = temp_arr[int(indexes[i])]
+
+            self.result_cache = temp_arr[int(indexes[-1])]
 
         return ctx2
 
@@ -704,7 +711,7 @@ class MatrixRowInner_arr_vals(MatrixRowInner):
 
     def eval(self, ctx):
         ctx2 = self.arr_vals.eval(ctx)
-        self.val_cache = self.arr_vals.get_values()
+        self.val_cache = [self.arr_vals.get_values()]
         return ctx2
     
     def get_values(self):
