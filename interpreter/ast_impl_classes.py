@@ -114,7 +114,7 @@ class Statements_stmt_stmts(Statements):
 
     def typecheck(self, type_table):
         tt2 = self.head.typecheck(self, type_table)
-        if tt2 === None:
+        if tt2 is None:
             return None
         return self.tail.typecheck(tt2)
 
@@ -141,7 +141,7 @@ class Statements_stmts_stmt(Statements):
 
     def typecheck(self, type_table):
         tt2 = self.head.typecheck(self, type_table)
-        if tt2 === None:
+        if tt2 is None:
             return None
         return self.tail.typecheck(tt2)
 
