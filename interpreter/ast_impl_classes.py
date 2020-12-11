@@ -1,6 +1,25 @@
 from ast_abstract_classes import *
 from std_lib import fn_table 
 
+class TypeTable:
+    def __init__(self):
+        self.ttable = {}
+    
+    def set_type(self, var, type_str):
+        if var in self.ttable:
+            if self.ttable[var] != type_str:
+                return False
+                
+        self.ttable[var] = type_str
+        return true
+
+    def type_compatible(self, var, type_str):
+        return self.ttable[var] == type_str
+
+    def get_type(self, var):
+        return self.ttable[var]
+
+
 class Context:
     frames = None
     functions = fn_table
@@ -71,6 +90,9 @@ class Program:
         print("Program: ")
         self.statements.print(1)
 
+    def typecheck(self, type_table):
+        return self.statements.typecheck(type_table)
+
 class Statements_stmt_stmts(Statements):
     head: Statement = None
     tail: Statements = None
@@ -89,6 +111,13 @@ class Statements_stmt_stmts(Statements):
         self.head.print(indent + 1)
         print(indent_str("-tail:", indent))
         self.tail.print(indent + 1)
+
+    def typecheck(self, type_table):
+        tt2 = self.head.typecheck(self, type_table)
+        if tt2 === None:
+            return None
+        return self.tail.typecheck(tt2)
+
 
 
 class Statements_stmts_stmt(Statements):
@@ -110,6 +139,12 @@ class Statements_stmts_stmt(Statements):
         print(indent_str("-tail:", indent))
         self.tail.print(indent + 1)
 
+    def typecheck(self, type_table):
+        tt2 = self.head.typecheck(self, type_table)
+        if tt2 === None:
+            return None
+        return self.tail.typecheck(tt2)
+
 class Statements_stmt(Statements):
     head: Statement = None
 
@@ -123,6 +158,9 @@ class Statements_stmt(Statements):
         print(indent_str("Statements:", indent))
         print(indent_str("-statement:", indent))
         self.head.print(indent + 1)
+    
+    def typecheck(self, type_table):
+        return head.typecheck(type_table)
 
 class Statement_empty(Statement):
     def __init__(self):
@@ -133,6 +171,9 @@ class Statement_empty(Statement):
 
     def print(self, indent):
         pass
+    
+    def typecheck(self, type_table):
+        return type_table
 
 class Statement_expr(Statement):
     expr: Expr = None
@@ -148,6 +189,9 @@ class Statement_expr(Statement):
         print(indent_str("Statement_expr:", indent))
         print(indent_str("-expr:", indent))
         self.expr.print(indent + 1)
+    
+    def typecheck(self, type_table):
+        return self.expr.typecheck(type_table)
 
 class Statement_assign(Statement):
     assign: Assign = None
@@ -162,6 +206,9 @@ class Statement_assign(Statement):
         print(indent_str("Statement:", indent))
         print(indent_str("-assign:", indent))
         self.assign.print(indent + 1)
+    
+    def typecheck(self, type_table):
+        return self.assign.typecheck(type_table)
 
 class Assign_ref_exp(Assign):
     ref: RefExpr = None
@@ -201,6 +248,14 @@ class Assign_ref_exp(Assign):
         self.ref.print(indent + 1)
         print(indent_str("-expr:", indent))
         self.expr.print(indent + 1)
+
+    def typecheck(self, type_table):
+        if type_table.set_type(self.ref.get_name(), self.expr.get_type(type_table)):
+            return type_table
+        else:
+            print("ASSIGN ERROR (TODO: WRITE OUT ERROR)")
+            return None
+
 
 class Statement_for(Statement):
     index_var = None
@@ -252,6 +307,12 @@ class Name:
     def print(self, indent):
         print(indent_str("NAME: "+self.val, indent))
 
+    def typecheck(self, type_table):
+        return type_table
+    
+    def get_type(self, type_table):
+        return type_table.get_type(self.val)
+
 class Expr_number(Expr):
     val = None
 
@@ -267,6 +328,12 @@ class Expr_number(Expr):
     def print(self, indent):
         print(indent_str("NUMBER: "+str(self.val), indent))
 
+    def typecheck(self, type_table):
+        return type_table
+    
+    def get_type(self, type_table):
+        return "NUMBER" #TODO: float vs int
+
 class Expr_string(Expr):
     val = None
 
@@ -281,6 +348,12 @@ class Expr_string(Expr):
 
     def print(self, indent):
         print(indent_str("STRING: "+self.val, indent))
+
+    def typecheck(self, type_table):
+        return type_table
+    
+    def get_type(self, type_table):
+        return "STRING"
 
 class Expr_binop(Expr):
     left = None
