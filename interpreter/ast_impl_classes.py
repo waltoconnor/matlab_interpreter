@@ -315,9 +315,16 @@ class Name:
 
 class Expr_number(Expr):
     val = None
+    v_type = None
 
     def __init__(self, val):
-        self.val = float(val)
+        if "." in val:
+            self.val = float(val)
+            self.v_type = "FLOAT"
+
+        elif "." not in val:
+            self.val = int(val)
+            self.v_type = "INT"
 
     def eval(self, ctx):
         return ctx
@@ -332,13 +339,15 @@ class Expr_number(Expr):
         return type_table
     
     def get_type(self, type_table):
-        return "NUMBER" #TODO: float vs int
+        return self.v_type
 
 class Expr_string(Expr):
     val = None
+    v_type = None
 
     def __init__(self, val):
         self.val = str(val)
+        v_type = "STRING"
 
     def eval(self, ctx):
         return ctx
@@ -353,7 +362,7 @@ class Expr_string(Expr):
         return type_table
     
     def get_type(self, type_table):
-        return "STRING"
+        return self.v_type
 
 class Expr_binop(Expr):
     left = None
