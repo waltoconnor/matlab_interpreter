@@ -368,8 +368,12 @@ class Expr_binop(Expr):
     left = None
     right = None
     op = None
-    v_type = (1, 1, None)
-
+    v_type = (0, 0, None)
+    op_types = {        'comparison' : set("<", "<=", ">", ">=", "~=", "=="),
+                        'arithmetic' : set("+", "-", "*", "/"),
+                           'logical' : set("||", "&&"),
+                'matrix_commutative' : set("+", "-", ".*", "./")}
+                
     result = None
 
     def __init__(self, left: Expr, op, right: Expr):
@@ -382,10 +386,10 @@ class Expr_binop(Expr):
         ctx3 = self.right.eval(ctx2)
 
         scalar_ops = {
-            '+': (lambda a,b: a+b),
-            '-': (lambda a,b: a-b),
-            '*': (lambda a,b: a*b),
-            '/': (lambda a,b: a/b),
+            '+': (lambda a,b: a + b),
+            '-': (lambda a,b: a - b),
+            '*': (lambda a,b: a * b),
+            '/': (lambda a,b: a / b),
             '<': (lambda a,b: 1 if a < b else 0),
             '>': (lambda a,b: 1 if a > b else 0),
             '<=': (lambda a,b: 1 if a <= b else 0),
@@ -396,12 +400,28 @@ class Expr_binop(Expr):
             '&&': (lambda a,b: 1 if a == 1 and b == 1 else 0)
         }
 
+        scalar_matrix_ops = {
+            '+': (lambda a,B: [[a + B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            '-': (lambda a,B: [[a - B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            '/': (lambda a,B: [[a / B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            '*': (lambda a,B: [[a * B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+        }
+
+        matrix_scalar_ops = {
+            '+': (lambda A,b: [[A[i][j] + b for j in range(len(A[0]))] for i in range(len(A))]),
+            '-': (lambda A,b: [[A[i][j] - b for j in range(len(A[0]))] for i in range(len(A))]),
+            '/': (lambda A,b: [[A[i][j] / b for j in range(len(A[0]))] for i in range(len(A))]),
+            '*': (lambda A,b: [[A[i][j] * b for j in range(len(A[0]))] for i in range(len(A))]),
+        }
+
         matrix_ops = {
-            '+': (lambda A,B: [[A[i][j]+B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
-            '-': (lambda A,B: [[A[i][j]-B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
-            '*': (lambda A,B: [[sum([x*y for (x, y) in zip(row, col)]) for col in zip(*B)] for row in A]),
-            '<': (lambda A,B: [[(1 if A[i][j] < B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
-            '>': (lambda A,B: [[(1 if A[i][j] > B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+             '+': (lambda A,B: [[A[i][j] + B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
+             '-': (lambda A,B: [[A[i][j] - B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
+             '*': (lambda A,B: [[sum([x*y for (x, y) in zip(row, col)]) for col in zip(*B)] for row in A]),
+            '.*': (lambda A,B: [[A[i][j] * B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
+            './': (lambda A,B: [[A[i][j] / B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
+             '<': (lambda A,B: [[(1 if A[i][j] < B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+             '>': (lambda A,B: [[(1 if A[i][j] > B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
             '<=': (lambda A,B: [[(1 if A[i][j] <= B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
             '>=': (lambda A,B: [[(1 if A[i][j] >= B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
             '==': (lambda A,B: [[(1 if A[i][j] == B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
@@ -410,14 +430,42 @@ class Expr_binop(Expr):
             '&&': (lambda A,B: [[(1 if A[i][j] == 1 and  B[i][j] == 1 else 0) for j in range(len(A[0]))] for i in range(len(A))])
         }
 
-        # TODO Run typecheck before executing matrix or scalar ops.
-        
-        self.result = ops[self.op](self.left.get_value(), self.right.get_value())
-        if type(self.result) == type(1):
-            self.v_type == (1, 1, "INT")
+        # unpack dimensions and type from left and right expressions        
+        left_m, left_n, left_type = self.left.get_type()
+        right_m, right_n, right_type = self.left.get_type()
 
-        if type(self.result) == type(1.0):
-            self.v_type == (1, 1, "FLOAT")
+        # Scalar to scalar operations
+        if left_m == left_n == right_m == right_n == 1:
+            self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.v_type = (left_m, left_n, left_type)        
+        
+        # Commutative matrix operations
+        elif left_m == right_m \
+            and left_n == right_n \
+            and self.op not in ["*", "/"]:
+
+            self.result = matrix_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.v_type = (left_m, left_n, left_type)        
+
+        # Matrix multiplication
+        elif left_n == right_m \
+            and self.op == "*":
+
+            self.result = matrix_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.v_type = (left_m, right_n, left_type)        
+
+        # Scalar/matrix math
+        elif left_n == right_n == 1:
+            self.result = scalar_matrix_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.v_type = (right_m, right_n, left_type)        
+
+        # matrix/scalar math
+        elif left_m == right_n == 1:
+            self.result = scalar_matrix_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.v_type = (left_m, left_n, left_type)
+        
+        else:
+            print("TYPE ERROR, cannot compute operation: {} on {}x{} {} with {}x{} {}".format(self.op, left_m, left_n, left_type, right_m, right_n, right_type))
 
         return ctx3
 
