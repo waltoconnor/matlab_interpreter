@@ -11,7 +11,7 @@ class TypeTable:
                 return False
                 
         self.ttable[var] = type_str
-        return true
+        return True
 
     def type_compatible(self, var, type_str):
         return self.ttable[var] == type_str
