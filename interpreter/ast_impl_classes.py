@@ -230,14 +230,14 @@ class Assign_ref_exp(Assign):
     
     def get_ref(self):
         if self.ref_cache == None:
-            print("ERROR, GET REF RUN FOR ASSSIGN THAT HASENT BEEN EVALD YET")
+            print("ERROR, GET REF RUN FOR ASSIGN THAT HASNT BEEN EVALD YET")
             return None
 
         return self.ref_cache
 
     def get_value(self):
         if self.expr_cache == None:
-            print("ERROR, GET VALUE RUN FOR ASSIGN THAT HASENT BEEN EVALD YET")
+            print("ERROR, GET VALUE RUN FOR ASSIGN THAT HASNT BEEN EVALD YET")
             return None
         
         return self.expr_cache
