@@ -10,6 +10,10 @@ class Expr(ABC):
     def get_value(self):
         pass
 
+    @abstractmethod
+    def get_type(self):
+        pass
+
 class Statements(ABC):
 
     @abstractmethod

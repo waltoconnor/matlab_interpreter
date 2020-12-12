@@ -315,16 +315,16 @@ class Name:
 
 class Expr_number(Expr):
     val = None
-    v_type = None
+    v_type = (0, 0, None)
 
     def __init__(self, val):
         if "." in val:
             self.val = float(val)
-            self.v_type = "FLOAT"
+            self.v_type = (1, 1, "FLOAT")
 
         elif "." not in val:
             self.val = int(val)
-            self.v_type = "INT"
+            self.v_type = (1, 1, "INT")
 
     def eval(self, ctx):
         return ctx
@@ -343,11 +343,11 @@ class Expr_number(Expr):
 
 class Expr_string(Expr):
     val = None
-    v_type = None
+    v_type = (0, 0, None)
 
     def __init__(self, val):
         self.val = str(val)
-        v_type = "STRING"
+        v_type = (1, 1, "STRING")
 
     def eval(self, ctx):
         return ctx
@@ -368,6 +368,7 @@ class Expr_binop(Expr):
     left = None
     right = None
     op = None
+    v_type = (1, 1, None)
 
     result = None
 
@@ -380,7 +381,7 @@ class Expr_binop(Expr):
         ctx2 = self.left.eval(ctx)
         ctx3 = self.right.eval(ctx2)
 
-        ops = {
+        scalar_ops = {
             '+': (lambda a,b: a+b),
             '-': (lambda a,b: a-b),
             '*': (lambda a,b: a*b),
@@ -394,8 +395,30 @@ class Expr_binop(Expr):
             '||': (lambda a,b: 1 if a == 1 or b == 1 else 0),
             '&&': (lambda a,b: 1 if a == 1 and b == 1 else 0)
         }
-        self.result = ops[self.op](self.left.get_value(), self.right.get_value())
+
+        matrix_ops = {
+            '+': (lambda A,B: [[A[i][j]+B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
+            '-': (lambda A,B: [[A[i][j]-B[i][j] for j in range(len(A[0]))] for i in range(len(A))]),
+            '*': (lambda A,B: [[sum([x*y for (x, y) in zip(row, col)]) for col in zip(*B)] for row in A]),
+            '<': (lambda A,B: [[(1 if A[i][j] < B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '>': (lambda A,B: [[(1 if A[i][j] > B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '<=': (lambda A,B: [[(1 if A[i][j] <= B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '>=': (lambda A,B: [[(1 if A[i][j] >= B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '==': (lambda A,B: [[(1 if A[i][j] == B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '~=': (lambda A,B: [[(1 if A[i][j] != B[i][j] else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '||': (lambda A,B: [[(1 if A[i][j] == 1 or B[i][j] == 1 else 0) for j in range(len(A[0]))] for i in range(len(A))]),
+            '&&': (lambda A,B: [[(1 if A[i][j] == 1 and  B[i][j] == 1 else 0) for j in range(len(A[0]))] for i in range(len(A))])
+        }
+
+        # TODO Run typecheck before executing matrix or scalar ops.
         
+        self.result = ops[self.op](self.left.get_value(), self.right.get_value())
+        if type(self.result) == type(1):
+            self.v_type == (1, 1, "INT")
+
+        if type(self.result) == type(1.0):
+            self.v_type == (1, 1, "FLOAT")
+
         return ctx3
 
     def get_value(self):
@@ -408,6 +431,9 @@ class Expr_binop(Expr):
         print(indent_str("op: "+self.op, indent))
         print(indent_str("right:", indent))
         self.right.print(indent + 1)
+
+    def get_type(self):
+        return self.v_type
 
 
 
@@ -559,10 +585,13 @@ class RefExpr_name(RefExpr):
 class ArrayVals_expr(ArrayVals):
     expr = None
     result_cache = None
+    array_type = (0, None)
 
     def __init__(self, expr: Expr):
         self.expr = expr
-    
+        expr_type = self.expr.get_type()
+        self.array_type = (1, expr_type)
+            
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
         self.result_cache = self.expr.get_value()
@@ -579,12 +608,15 @@ class ArrayVals_expr(ArrayVals):
 class ArrayVals_expr_array_vals(ArrayVals):
     expr = None
     array_vals: ArrayVals = None
+    array_type = (0, None)
 
     result_cache = None
 
     def __init__(self, expr: Expr, array_vals: ArrayVals):
         self.expr = expr
         self.array_vals = array_vals
+        expr_type = self.expr.get_type()
+        self.array_type = (len([array_vals]), expr_type)
     
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
