@@ -461,7 +461,7 @@ class Expr_binop(Expr):
 
         # matrix/scalar math
         elif left_m == right_n == 1:
-            self.result = scalar_matrix_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.result = matrix_scalar_ops[self.op](self.left.get_value(), self.right.get_value())
             self.v_type = (left_m, left_n, left_type)
         
         else:
@@ -482,8 +482,6 @@ class Expr_binop(Expr):
 
     def get_type(self):
         return self.v_type
-
-
 
 class Args_args_expr(Args):
     args: Args = None
