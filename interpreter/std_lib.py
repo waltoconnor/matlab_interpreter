@@ -12,9 +12,7 @@ class FuncTypeTable:
             if self.func_ttable[var][0] != arg_type_str or self.func_ttable[var][1] != res_type_str:
                 return False
         else:
-            self.func_ttable[var] = (None,None)
-            self.func_ttable[var][0] = arg_type_str
-            self.func_ttable[var][1] = res_type_str
+            self.func_ttable[var] = (arg_type_str, res_type_str)
             return True
 
     def __contains__(self, var):
