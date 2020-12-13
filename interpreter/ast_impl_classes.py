@@ -1,10 +1,14 @@
 from ast_abstract_classes import *
-from std_lib import fn_table 
+from std_lib import fn_table, fn_type_table
 
 class TypeTable:
     def __init__(self):
         self.ttable = {}
+        self.function_types = fn_type_table
     
+    def get_function_types(self):
+        return self.function_types
+
     def set_type(self, var, type_str):
         if var in self.ttable:
             if self.ttable[var] != type_str:
@@ -19,7 +23,16 @@ class TypeTable:
     def get_type(self, var):
         return self.ttable[var]
 
+    def get_fn_parameter_type(self, name):
+            return self.fn_type_table.get_func_param_type(name)
 
+    def get_fn_type(self, name):
+        return self.fn_type_table.get_func_res_type(name)
+
+    def fn_type_compatible(self, fn_name, param_type, res_type):
+        return param_type == get_fn_parameter_type(fn_name) \
+                and res_type == get_fn_type(fn_name)
+   
 class Context:
     frames = None
     functions = fn_table
@@ -600,6 +613,24 @@ class RefExpr_function_call(RefExpr):
         #self.ref_id.print(indent + 1)
         print(indent_str("-args:", indent))
         self.args.print(indent + 1)
+
+    def typecheck(self, type_table):
+        fn_types = type_table.get_function_types()
+
+        if self.ref_id in fn_types:
+            type_table.set_type(self.ref_id, get_fn_type(self.ref_id))
+        else: 
+            ## TODO, assign get array dimensions and add to the type table.
+
+            type_table.set_type(self.ref_id, ())
+
+            indexes = self.args_val_cache
+            cur_arr = ctx.search_stack(self.ref_id)
+            temp_arr = cur_arr
+            for i in range(0, len(indexes) - 1):
+                temp_arr = temp_arr[int(indexes[i])]
+
+            self.result_cache = temp_arr[int(indexes[-1])]
 
 
 class RefExpr_name(RefExpr):
