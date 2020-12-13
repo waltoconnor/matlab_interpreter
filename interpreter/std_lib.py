@@ -8,12 +8,14 @@ class FuncTypeTable:
 
     def set_type(self, var, arg_type_str, res_type_str):
         if var in self.func_ttable:
+            # don't add function if already defined.
             if self.func_ttable[var][0] != arg_type_str or self.func_ttable[var][1] != res_type_str:
                 return False
-
-        self.func_ttable[var][0] = arg_type_str
-        self.func_ttable[var][1] = res_type_str
-        return True
+        else:
+            self.func_ttable[var] = (None,None)
+            self.func_ttable[var][0] = arg_type_str
+            self.func_ttable[var][1] = res_type_str
+            return True
 
     def get_func_param_type(self, var):
         return self.func_ttable[var][0]
