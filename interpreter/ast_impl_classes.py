@@ -493,7 +493,7 @@ class Expr_binop(Expr):
         print(indent_str("right:", indent))
         self.right.print(indent + 1)
 
-    def get_type(self):
+    def get_type(self, type_table):
         return self.v_type
 
 class Args_args_expr(Args):
@@ -634,8 +634,11 @@ class RefExpr_function_call(RefExpr):
 
 
 class RefExpr_name(RefExpr):
+    # Variable access 
+
     ref_id = None
     val = None
+    v_type = (0, 0, None)
 
     def __init__(self, name: Name):
         self.ref_id = name
@@ -657,6 +660,15 @@ class RefExpr_name(RefExpr):
     def print(self, indent):
         print(indent_str("RefExpr_name:", indent))
         self.ref_id.print(indent + 1)
+
+    def get_type(self, type_table):
+        if self.val in type_table[self.ref_id]:
+            return type_table[self.ref_id]
+        else: 
+            return self.v_type
+
+
+
         
 
 class ArrayVals_expr(ArrayVals):
@@ -667,7 +679,7 @@ class ArrayVals_expr(ArrayVals):
     def __init__(self, expr: Expr):
         self.expr = expr
         expr_type = self.expr.get_type()
-        self.array_type = (1, expr_type)
+        self.array_type = (1, 1, expr_type)
             
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
