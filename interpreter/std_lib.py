@@ -27,21 +27,21 @@ fn_type_table = FuncTypeTable()
 
 print_fn = lambda x: print(x[0])
 fn_table['print'] = print_fn
-fun_type_table.set_type('print', (1, 1, "STRING"), (1, 1, "STRING"))
+fn_type_table.set_type('print', (1, 1, "STRING"), (1, 1, "STRING"))
 
 sum_fn = lambda x: sum(x[0])
 fn_table['sum'] = sum_fn
 # TODO: need to differentiate for FLOAT
-fun_type_table.set_type('sum', (1, 1, "INT"), (1, 1, "INT"))
+fn_type_table.set_type('sum', (1, 1, "INT"), (1, 1, "INT"))
 
 str_fn = lambda x: str(x[0])
 fn_table['str'] = str_fn
-fun_type_table.set_type('print', (1, 1, "STRING"), (1, 1, "STRING"))
+fn_type_table.set_type('print', (1, 1, "STRING"), (1, 1, "STRING"))
 
 randi_fn = lambda x: randrange(x[0], x[1])
 fn_table['randi'] = randi_fn
-fun_type_table.set_type('sum', (1, 2, "INT"), (1, 1, "INT"))
+fn_type_table.set_type('sum', (1, 2, "INT"), (1, 1, "INT"))
 
 size_fn = lambda x: len(x[0])
 fn_table['size'] = size_fn
-fun_type_table.set_type('sum', (1, 1, "INT"), (1, 1, "INT"))
+fn_type_table.set_type('sum', (1, 1, "INT"), (1, 1, "INT"))
