@@ -67,7 +67,7 @@ class Context:
 
     def get_fn(self, name):
         return self.function_table[name]
-    
+
     def has_fn(self, name):
         return name in self.function_table
 
@@ -845,6 +845,9 @@ class ArrayColon(Expr):
         self.left.print(indent + 1)
         print(indent_str("-right:", indent))
         self.right.print(indent + 1)
+
+    def get_type(self, type_table):
+        return (1, 1, "INT")
 
 class MatrixRowInner_arr_vals(MatrixRowInner):
     
