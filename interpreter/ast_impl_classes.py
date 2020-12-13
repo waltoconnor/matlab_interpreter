@@ -661,8 +661,8 @@ class ArrayVals_expr(ArrayVals):
 class ArrayVals_expr_array_vals(ArrayVals):
     
     def __init__(self, expr: Expr, array_vals: ArrayVals):
-        self.expr = None
-        self.array_vals: ArrayVals = None
+        self.expr = expr 
+        self.array_vals = array_vals
         self.array_type = None
         self.result_cache = None
     
