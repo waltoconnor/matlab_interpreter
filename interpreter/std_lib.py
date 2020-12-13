@@ -7,9 +7,8 @@ class FuncTypeTable:
         self.func_ttable = {}
 
     def set_type(self, var, arg_type_str, res_type_str):
-    def set_type(self, var, arg_type_str, res_type_str):
         if var in self.func_ttable:
-            if self.func_ttable[var][0] != arg_type_str or self.func_ttable[var][1] != restype_str:
+            if self.func_ttable[var][0] != arg_type_str or self.func_ttable[var][1] != res_type_str:
                 return False
 
         self.func_ttable[var][0] = arg_type_str
