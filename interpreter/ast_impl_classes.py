@@ -2,6 +2,7 @@ from ast_abstract_classes import *
 from std_lib import fn_table, fn_type_table
 
 class TypeTable:
+
     def __init__(self):
         self.ttable = {}
         self.function_types = fn_type_table
@@ -34,8 +35,6 @@ class TypeTable:
                 and res_type == self.get_fn_type(fn_name)
    
 class Context:
-    frames = None
-    functions = fn_table
 
     def __init__(self):
         self.frames = [{}]
@@ -92,7 +91,7 @@ def indent_str(text, indent):
     return s
 
 class Program:
-    statements: Statements = None
+
     def __init__(self, statements: Statements):
         self.statements = statements
     
@@ -107,8 +106,6 @@ class Program:
         return self.statements.typecheck(type_table)
 
 class Statements_stmt_stmts(Statements):
-    head: Statement = None
-    tail: Statements = None
 
     def __init__(self, stmt: Statement, stmts: Statements):
         self.head = stmt
@@ -134,8 +131,6 @@ class Statements_stmt_stmts(Statements):
 
 
 class Statements_stmts_stmt(Statements):
-    head: Statements = None
-    tail: Statement = None
 
     def __init__(self, stmts: Statements, stmt: Statement):
         self.head = stmts
@@ -159,7 +154,6 @@ class Statements_stmts_stmt(Statements):
         return self.tail.typecheck(tt2)
 
 class Statements_stmt(Statements):
-    head: Statement = None
 
     def __init__(self, stmt: Statement):
         self.head = stmt
@@ -189,7 +183,6 @@ class Statement_empty(Statement):
         return type_table
 
 class Statement_expr(Statement):
-    expr: Expr = None
 
     def __init__(self, expr: Expr):
         self.expr = expr
@@ -207,7 +200,6 @@ class Statement_expr(Statement):
         return self.expr.typecheck(type_table)
 
 class Statement_assign(Statement):
-    assign: Assign = None
     
     def __init__(self, assign: Assign):
         self.assign = assign
@@ -224,14 +216,13 @@ class Statement_assign(Statement):
         return self.assign.typecheck(type_table)
 
 class Assign_ref_exp(Assign):
-    ref: RefExpr = None
-    expr: Expr = None
-    ref_cache = None
-    expr_cache = None
-
+    
     def __init__(self, ref: RefExpr, expr: Expr):
         self.ref = ref
         self.expr = expr
+        self.ref_cache = None
+        self.expr_cache = None
+
 
     def eval(self, ctx):
         ctx2 = self.ref.eval(ctx);
@@ -271,13 +262,10 @@ class Assign_ref_exp(Assign):
 
 
 class Statement_for(Statement):
-    index_var = None
-    range_vals = None
-
-    assign: Assign = None
-    statements: Statements = None
 
     def __init__(self, assign: Assign, stmts: Statements):
+        self.index_var = None
+        self.range_vals = None
         self.assign = assign
         self.statements = stmts
     
@@ -306,7 +294,6 @@ class Statement_for(Statement):
 
 
 class Name:
-    val = None
 
     def __init__(self, val):
         self.val = val
@@ -327,9 +314,7 @@ class Name:
         return type_table.get_type(self.val)
 
 class Expr_number(Expr):
-    val = None
-    v_type = (0, 0, None)
-
+    
     def __init__(self, val):
         if "." in val:
             self.val = float(val)
@@ -355,12 +340,10 @@ class Expr_number(Expr):
         return self.v_type
 
 class Expr_string(Expr):
-    val = None
-    v_type = (0, 0, None)
-
+    
     def __init__(self, val):
         self.val = str(val)
-        v_type = (1, 1, "STRING")
+        self.v_type = (1, 1, "STRING")
 
     def eval(self, ctx):
         return ctx
@@ -378,22 +361,18 @@ class Expr_string(Expr):
         return self.v_type
 
 class Expr_binop(Expr):
-    left = None
-    right = None
-    op = None
-    v_type = (0, 0, None)
     op_types = {        'comparison' : set(["<", "<=", ">", ">=", "~=", "=="]),
                         'arithmetic' : set(["+", "-", "*", "/"]),
                            'logical' : set(["||", "&&"]),
                 'matrix_commutative' : set(["+", "-", ".*", "./"])}
-                
-    result = None
-
+    
     def __init__(self, left: Expr, op, right: Expr):
         self.left = left
         self.right = right
         self.op = op
-
+        self.result = None
+        self.v_type = None
+    
     def eval(self, ctx):
         ctx2 = self.left.eval(ctx)
         ctx3 = self.right.eval(ctx2)
@@ -497,14 +476,11 @@ class Expr_binop(Expr):
         return self.v_type
 
 class Args_args_expr(Args):
-    args: Args = None
-    expr: Expr = None
-
-    cached_value = None
-
+    
     def __init__(self, args: Args, expr: Expr):
         self.args = args
         self.expr = expr
+        self.cached_value = None
 
     def eval(self, ctx):
         ctx2 = self.args.eval(ctx)
@@ -526,13 +502,11 @@ class Args_args_expr(Args):
         self.expr.print(indent + 1)
 
 class Args_expr(Args):
-    expr: Expr = None
-
-    cached_value = None
-
+    
     def __init__(self, expr: Expr):
         self.expr = expr
-    
+        self.cached_value = None
+
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
         self.cached_value = [self.expr.get_value()] #argument values provided as list
@@ -550,17 +524,12 @@ class Args_expr(Args):
         self.expr.print(indent + 1)
 
 class RefExpr_function_call(RefExpr):
-    ref_id = None
-    args = None
-
-    args_val_cache = None
-    result_cache = None
-
-    is_array = False
 
     def __init__(self, name: Name, args: Args):
         self.ref_id = name
         self.args = args
+        self.args_val_cache = None
+        self.is_array = False
 
     def eval(self, ctx):
         ctx2 = self.args.eval(ctx) if self.args != None else ctx
@@ -636,12 +605,10 @@ class RefExpr_function_call(RefExpr):
 class RefExpr_name(RefExpr):
     # Variable access 
 
-    ref_id = None
-    val = None
-    v_type = (0, 0, None)
-
     def __init__(self, name: Name):
         self.ref_id = name
+        self.val = None
+        self.v_type = None
 
     def eval(self, ctx):
         self.val = ctx.search_stack(self.ref_id.get_value())
@@ -672,14 +639,11 @@ class RefExpr_name(RefExpr):
         
 
 class ArrayVals_expr(ArrayVals):
-    expr = None
-    result_cache = None
-    array_type = (0, None)
-
+    
     def __init__(self, expr: Expr):
         self.expr = expr
-        expr_type = self.expr.get_type()
-        self.array_type = (1, 1, expr_type)
+        self.result_cache = None
+        self.array_type = None
             
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
@@ -695,17 +659,12 @@ class ArrayVals_expr(ArrayVals):
         self.expr.print(indent + 1)
 
 class ArrayVals_expr_array_vals(ArrayVals):
-    expr = None
-    array_vals: ArrayVals = None
-    array_type = (0, None)
-
-    result_cache = None
-
+    
     def __init__(self, expr: Expr, array_vals: ArrayVals):
-        self.expr = expr
-        self.array_vals = array_vals
-        expr_type = self.expr.get_type()
-        self.array_type = (len([array_vals]), expr_type)
+        self.expr = None
+        self.array_vals: ArrayVals = None
+        self.array_type = None
+        self.result_cache = None
     
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
@@ -726,12 +685,11 @@ class ArrayVals_expr_array_vals(ArrayVals):
         self.array_vals.print(indent + 1)
 
 class ArrayLiteral:
-    array_vals = None
-    result_cache = None
-
+    
     def __init__(self, values: ArrayVals):
         self.array_vals = values
-    
+        self.result_cache = None
+
     def eval(self, ctx):
         ctx2 = self.array_vals.eval(ctx)
         self.result_cache = self.array_vals.get_values()
@@ -745,8 +703,6 @@ class ArrayLiteral:
         self.array_vals.print(indent + 1)
 
 class IfStatement_no_else(IfStatement):
-    cond = None
-    tblock = None
 
     def __init__(self, cond, tblock):
         self.cond = cond
@@ -769,9 +725,6 @@ class IfStatement_no_else(IfStatement):
         
 
 class IfStatement_else(IfStatement):
-    cond = None
-    tblock = None
-    fblock = None
 
     def __init__(self, cond, tblock, fblock):
         self.cond = cond
@@ -798,9 +751,6 @@ class IfStatement_else(IfStatement):
         self.fblock.print(indent + 1)
 
 class IfStatement_elseif(IfStatement):
-    cond = None
-    tblock = None
-    elseif = None
 
     def __init__(self, cond, tblock, elseif):
         self.cond = cond
@@ -824,9 +774,6 @@ class IfStatement_elseif(IfStatement):
         self.elseif.print(indent + 1)
 
 class Elseif_elseif:
-    cond = None
-    tblock = None
-    elseif = None
 
     def __init__(self, cond, tblock, elseif):
         self.cond = cond
@@ -850,9 +797,6 @@ class Elseif_elseif:
         self.elseif.print(indent + 1)
 
 class Elseif_else:
-    cond = None
-    tblock = None
-    fblock = None
 
     def __init__(self, cond, tblock, fblock):
         self.cond = cond
@@ -879,14 +823,11 @@ class Elseif_else:
         self.fblock.print(indent + 1)
 
 class ArrayColon(Expr):
-    left = None
-    right = None
-
-    val_cache = None
-
+    
     def __init__(self, left, right):
         self.left = left
         self.right = right
+        self.val_cache = None
 
     def eval(self, ctx):
         ctx2 = self.left.eval(ctx)
@@ -906,11 +847,10 @@ class ArrayColon(Expr):
         self.right.print(indent + 1)
 
 class MatrixRowInner_arr_vals(MatrixRowInner):
-    arr_vals = None
-    val_cache = None
-
+    
     def __init__(self, arr_vals):
         self.arr_vals = arr_vals
+        self.val_cache = None
 
     def eval(self, ctx):
         ctx2 = self.arr_vals.eval(ctx)
@@ -926,13 +866,11 @@ class MatrixRowInner_arr_vals(MatrixRowInner):
         self.arr_vals.print(indent + 1)
 
 class MatrixRowInner_mri_arr_vals(MatrixRowInner):
-    mri_head = None
-    arr_vals = None
-    val_cache = None
 
     def __init__(self, head, arr_vals):
         self.arr_vals = arr_vals
         self.mri_head = head
+        self.val_cache = None
 
     def eval(self, ctx):
         ctx2 = self.mri_head.eval(ctx)
@@ -952,13 +890,11 @@ class MatrixRowInner_mri_arr_vals(MatrixRowInner):
         
 
 class MatrixLiteral:
-    mri_head = None
-    arr_vals = None
-    val_cache = None
 
     def __init__(self, head, arr_vals):
         self.arr_vals = arr_vals
         self.mri_head = head
+        self.val_cache = None
 
     def eval(self, ctx):
         ctx2 = self.mri_head.eval(ctx)
