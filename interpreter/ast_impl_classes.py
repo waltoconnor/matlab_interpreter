@@ -382,10 +382,10 @@ class Expr_binop(Expr):
     right = None
     op = None
     v_type = (0, 0, None)
-    op_types = {        'comparison' : set("<", "<=", ">", ">=", "~=", "=="),
-                        'arithmetic' : set("+", "-", "*", "/"),
-                           'logical' : set("||", "&&"),
-                'matrix_commutative' : set("+", "-", ".*", "./")}
+    op_types = {        'comparison' : set(["<", "<=", ">", ">=", "~=", "=="]),
+                        'arithmetic' : set(["+", "-", "*", "/"]),
+                           'logical' : set(["||", "&&"]),
+                'matrix_commutative' : set(["+", "-", ".*", "./"])}
                 
     result = None
 
