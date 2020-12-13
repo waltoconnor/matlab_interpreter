@@ -2,7 +2,7 @@ from random import randrange
 
 fn_table = {}
 
-part of mclass FuncTypeTable:
+class FuncTypeTable:
     def __init__(self):
         self.func_ttable = {}
 
