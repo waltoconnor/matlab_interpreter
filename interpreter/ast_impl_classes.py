@@ -24,14 +24,14 @@ class TypeTable:
         return self.ttable[var]
 
     def get_fn_parameter_type(self, name):
-            return self.fn_type_table.get_func_param_type(name)
+        return self.fn_type_table.get_func_param_type(name)
 
     def get_fn_type(self, name):
         return self.fn_type_table.get_func_res_type(name)
 
     def fn_type_compatible(self, fn_name, param_type, res_type):
-        return param_type == get_fn_parameter_type(fn_name) \
-                and res_type == get_fn_type(fn_name)
+        return param_type == self.get_fn_parameter_type(fn_name) \
+                and res_type == self.get_fn_type(fn_name)
    
 class Context:
     frames = None
@@ -618,7 +618,7 @@ class RefExpr_function_call(RefExpr):
         fn_types = type_table.get_function_types()
 
         if self.ref_id in fn_types:
-            type_table.set_type(self.ref_id, get_fn_type(self.ref_id))
+            type_table.set_type(self.ref_id, type_table.get_fn_type(self.ref_id))
         else: 
             ## TODO, assign get array dimensions and add to the type table.
 
