@@ -17,6 +17,12 @@ class FuncTypeTable:
             self.func_ttable[var][1] = res_type_str
             return True
 
+    def __contains__(self, var):
+        if var in self.func_ttable:
+            return True
+        else:
+            return False
+
     def get_func_param_type(self, var):
         return self.func_ttable[var][0]
 
