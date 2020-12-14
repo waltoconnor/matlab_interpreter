@@ -521,25 +521,31 @@ class Expr_binop(Expr):
                 if left_type[2] == "STRING" or right_type[2] == "STRING":
                     return None
                 else:
-                    return (1, 1, "FLOAT")
+                    self.v_type = (1, 1, "FLOAT")
+                    return self.v_type
 
             elif left_type[2] == "INT" or right_type[2] == "INT":
-                return (1, 1, "INT")
+                self.vtype = (1, 1, "INT")
+                return self.vtype
 
         # If one arg is None, cast the result as the known type. 
         elif left_type is None or right_type is None:
             if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
-                return (1, 1, "FLOAT")
-            
+                self.vtype = (1, 1, "FLOAT")
+                return self.vtype
+
             elif left_type[2] == "INT" or right_type[2] == "INT":
-                return (1, 1, "INT")
-            
+                self.vtype = (1, 1, "INT")
+                return self.vtype
+
             elif left_type[2] == "STRING" or right_type[2] == "STRING":
-                return (1, 1, "STRING")
-        
+                self.vtype = (1, 1, "STRING")
+                return self.vtype
+
         # If both types are unknown cast as (1, 1, "INT")
         else: # Left and Right are None
-            return (1, 1, "INT")
+            self.vtype = (1, 1, "INT")
+            return self.vtype
     
     def get_type(self, type_table):
         return self.v_type
@@ -820,7 +826,10 @@ class ArrayLiteral(Expr):
     
     def get_value(self):
         return self.result_cache
-    
+
+    def get_size(self):
+        return (self.v_type[0], self.v_type[1])
+
     def print(self, indent):
         print(indent_str("ArrayLiteral:", indent))
         self.array_vals.print(indent + 1)
