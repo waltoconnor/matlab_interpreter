@@ -13,8 +13,11 @@ class TypeTable:
         return self.function_types
 
     def set_type(self, var, type_str):
-        if var in self.ttable:
-            if self.ttable[var] != type_str:
+        print("Setting variable {} to type {}".format(var, str(type_str)))
+        
+        if var in self.ttable.keys():
+            print("old value {}".format(self.ttable[var]))
+            if self.ttable[var] != type_str and self.ttable[var] != None:
                 return False
                 
         self.ttable[var] = type_str
@@ -101,7 +104,11 @@ class Program:
         self.statements = statements
     
     def eval(self, ctx):
-        return self.statements.eval(ctx)
+        global global_type_table
+        final_ctx = self.statements.eval(ctx)
+        print("FINAL TYPE TABLE:")
+        print(global_type_table.ttable)
+        return final_ctx
 
     def print(self):
         print("Program: ")
@@ -110,7 +117,6 @@ class Program:
     def typecheck(self, type_table):
         global global_type_table 
         global_type_table = self.statements.typecheck(type_table)
-        print(global_type_table)
         return global_type_table
 
 class Statements_stmt_stmts(Statements):
@@ -233,11 +239,13 @@ class Assign_ref_exp(Assign):
 
 
     def eval(self, ctx):
-        ctx2 = self.ref.eval(ctx);
+        global global_type_table
+        ctx2 = self.ref.eval(ctx)
         self.ref_cache = self.ref.get_name()
         ctx3 = self.expr.eval(ctx2)
         self.expr_cache = self.expr.get_value()
         ctx4 = self.ref.set_value(ctx3, self.expr_cache)
+        global_type_table.set_type(self.ref.get_name(), self.expr.get_type(global_type_table))
         return ctx4
     
     def get_ref(self):
@@ -443,7 +451,8 @@ class Expr_binop(Expr):
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
             self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)        
+            self.v_type = (left_m, left_n, left_type)      
+            
         
         # Commutative matrix operations
         elif left_m == right_m \
@@ -473,6 +482,8 @@ class Expr_binop(Expr):
         else:
             print("TYPE ERROR, cannot compute operation: {} on {}x{} {} with {}x{} {}".format(self.op, left_m, left_n, left_type, right_m, right_n, right_type))
 
+        print("V_TYPE")
+        print(self.v_type)  
         return ctx3
 
     def get_value(self):
