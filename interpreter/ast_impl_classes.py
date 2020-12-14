@@ -491,6 +491,9 @@ class Expr_binop(Expr):
         
         else:
             print("TYPE ERROR, cannot compute operation: {} on {}x{} {} with {}x{} {}".format(self.op, left_m, left_n, left_type, right_m, right_n, right_type))
+        
+        if self.op in self.op_types['comparison'] or self.op in self.op_types['logical']:
+            self.v_type = (1, 1, "INT")
 
         print("V_TYPE")
         print(self.v_type)  
@@ -1086,7 +1089,7 @@ class MatrixRowInner_mri_arr_vals(MatrixRowInner):
 
     def typecheck(self, type_table):
         tt1 = self.mri_head.typecheck(type_table)
-        return self.arr_vals.typecheck(type_table)
+        return self.arr_vals.typecheck(tt1)
         
 
 class MatrixLiteral:
