@@ -684,6 +684,9 @@ class ArrayVals_expr(ArrayVals):
 
     def get_width(self):
         return 1
+
+    def get_head_type(self, type_table):
+        return self.expr.get_type(type_table)
     
     def print(self, indent):
         print(indent_str("ArrayVal expr:", indent))
@@ -709,7 +712,10 @@ class ArrayVals_expr_array_vals(ArrayVals):
         return self.result_cache
 
     def get_width(self):
-        return len(self.result_cache)
+        return 1 + self.array_vals.get_width()
+
+    def get_head_type(self, type_table):
+        return self.expr.get_type(type_table)
     
     def print(self, indent):
         print(indent_str("ArrayVal expr:", indent))
@@ -737,7 +743,7 @@ class ArrayLiteral(Expr):
         self.array_vals.print(indent + 1)
 
     def get_type(self, type_table):
-        return (1, len(self.array_vals), self.array_vals[0].get_type(type_table)[2])
+        return (1, self.array_vals.get_width(), self.array_vals.get_head_type(type_table)[2])
 
 
 class IfStatement_no_else(IfStatement):
