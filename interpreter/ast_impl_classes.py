@@ -461,7 +461,7 @@ class Expr_binop(Expr):
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
             self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)
+            self.v_type = (left_m, left_n, self.v_type[2])      
             
         
         # Commutative matrix operations
@@ -470,24 +470,24 @@ class Expr_binop(Expr):
             and self.op not in ["*", "/"]:
 
             self.result = matrix_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)        
+            self.v_type = (left_m, left_n, self.v_type[2])        
 
         # Matrix multiplication
         elif left_n == right_m \
             and self.op == "*":
 
             self.result = matrix_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, right_n, left_type)        
+            self.v_type = (left_m, right_n, self.v_type[2])        
 
         # Scalar/matrix math
         elif left_n == right_n == 1:
             self.result = scalar_matrix_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (right_m, right_n, left_type)        
+            self.v_type = (right_m, right_n, self.v_type[2])        
 
         # matrix/scalar math
-        elif left_m == right_n == 1:
+        elif right_m == right_n == 1:
             self.result = matrix_scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)
+            self.v_type = (left_m, left_n, self.v_type[2])
         
         else:
             print("TYPE ERROR, cannot compute operation: {} on {}x{} {} with {}x{} {}".format(self.op, left_m, left_n, left_type, right_m, right_n, right_type))
@@ -550,6 +550,7 @@ class Expr_binop(Expr):
         if left_type is not None and right_type is not None:
             if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
                 if left_type[2] == "STRING" or right_type[2] == "STRING":
+                    print("INCOMPATIBLE TYPES IN BINOP {} {} {}", left_type[2], self.op, right_type[2])
                     return None
                 else:
                     return (1, 1, "FLOAT")
@@ -837,8 +838,14 @@ class IfStatement_no_else(IfStatement):
         self.tblock = tblock
     
     def eval(self, ctx):
+        global global_type_table
         ctx2 = self.cond.eval(ctx)
         ctx3 = ctx2
+        cond_type = self.cond.get_type(global_type_table)
+        if cond_type is not "INT":
+            print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
+            return None
+
         if self.cond.get_value() > 0: #0 is false, other is true
             ctx3 = self.tblock.eval(ctx2)
         
@@ -853,12 +860,7 @@ class IfStatement_no_else(IfStatement):
 
     def typecheck(self, type_table):
         tt1 = self.cond.typecheck(type_table)
-        cond_type = self.cond.get_type(tt1)
-        if cond_type is not "INT":
-            print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
-            return None
-        else:
-            return self.tblock.typecheck(tt1)
+        return self.tblock.typecheck(tt1)
         
 
 class IfStatement_else(IfStatement):
@@ -869,8 +871,14 @@ class IfStatement_else(IfStatement):
         self.fblock = fblock
     
     def eval(self, ctx):
+        global global_type_table
         ctx2 = self.cond.eval(ctx)
         ctx3 = ctx2
+        cond_type = self.cond.get_type(global_type_table)
+        if cond_type is not "INT":
+            print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
+            return None
+
         if self.cond.get_value() > 0: #0 is false, other is true
             ctx3 = self.tblock.eval(ctx2)
         else:
@@ -889,13 +897,8 @@ class IfStatement_else(IfStatement):
 
     def typecheck(self, type_table):
         tt1 = self.cond.typecheck(type_table)
-        cond_type = self.cond.get_type(tt1)
-        if cond_type is not "INT":
-            print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
-            return None
-        else:
-            tt2 = self.tblock.typecheck(tt1)
-            return self.fblock.typecheck(tt2)
+        tt2 = self.tblock.typecheck(tt1)
+        return self.fblock.typecheck(tt2)
 
 class IfStatement_elseif(IfStatement):
 
