@@ -116,6 +116,8 @@ class Program:
 
     def typecheck(self, type_table):
         global global_type_table 
+        print(self.__class__.__name__)
+        print(type_table)
         global_type_table = self.statements.typecheck(type_table)
         return global_type_table
 
@@ -137,6 +139,8 @@ class Statements_stmt_stmts(Statements):
         self.tail.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt2 = self.head.typecheck(type_table)
         if tt2 is None:
             return None
@@ -162,8 +166,11 @@ class Statements_stmts_stmt(Statements):
         self.tail.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt2 = self.head.typecheck(self, type_table)
         if tt2 is None:
+            print("TT2 IS NULL")
             return None
         return self.tail.typecheck(tt2)
 
@@ -181,6 +188,8 @@ class Statements_stmt(Statements):
         self.head.print(indent + 1)
     
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return self.head.typecheck(type_table)
 
 class Statement_empty(Statement):
@@ -194,6 +203,8 @@ class Statement_empty(Statement):
         pass
     
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return type_table
 
 class Statement_expr(Statement):
@@ -211,6 +222,8 @@ class Statement_expr(Statement):
         self.expr.print(indent + 1)
     
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return self.expr.typecheck(type_table)
 
 class Statement_assign(Statement):
@@ -270,6 +283,8 @@ class Assign_ref_exp(Assign):
         self.expr.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         self.expr.typecheck(type_table)
         if type_table.set_type(self.ref.get_name(), self.expr.get_type(type_table)):
             return type_table
@@ -325,6 +340,8 @@ class Name:
         print(indent_str("NAME: "+self.val, indent))
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return type_table
     
     def get_type(self, type_table):
@@ -351,6 +368,8 @@ class Expr_number(Expr):
         print(indent_str("NUMBER: "+str(self.val), indent))
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return type_table
     
     def get_type(self, type_table):
@@ -372,6 +391,8 @@ class Expr_string(Expr):
         print(indent_str("STRING: "+self.val, indent))
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return type_table
     
     def get_type(self, type_table):
@@ -511,9 +532,11 @@ class Expr_binop(Expr):
         self.right.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         
-        left_type = self.left.get_type(global_type_table)
-        right_type = self.right.get_type(global_type_table)
+        left_type = self.left.get_type(type_table)
+        right_type = self.right.get_type(type_table)
 
         # Make sure we don't mix string and numeric types.
         if left_type is not None and right_type is not None:
@@ -523,55 +546,35 @@ class Expr_binop(Expr):
                     return None
                 else:
                     self.v_type = (1, 1, "FLOAT")
-                    return self.v_type
+                    return type_table
 
             elif left_type[2] == "INT" or right_type[2] == "INT":
                 self.v_type = (1, 1, "INT")
-                return self.v_type
-
+                return type_table
+            return type_table
         # If one arg is None, cast the result as the known type. 
         elif left_type is None or right_type is None:
             if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
                 self.v_type = (1, 1, "FLOAT")
-                return self.v_type
+                return type_table
 
             elif left_type[2] == "INT" or right_type[2] == "INT":
                 self.v_type = (1, 1, "INT")
-                return self.v_type
+                return type_table
 
             elif left_type[2] == "STRING" or right_type[2] == "STRING":
                 self.v_type = (1, 1, "STRING")
-                return self.v_type
+                return type_table
+            return type_table
 
         # If both types are unknown cast as (1, 1, "INT")
         else: # Left and Right are None
             self.v_type = (1, 1, "INT")
-            return self.v_type
+            return type_table
     
     def get_type(self, type_table):
         return self.v_type
 
-    def typecheck(self, type_table):
-        left_type = self.left.get_type(type_table)
-        right_type = self.right.get_type(type_table)
-        if left_type is not None and right_type is not None:
-            if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
-                if left_type[2] == "STRING" or right_type[2] == "STRING":
-                    print("INCOMPATIBLE TYPES IN BINOP {} {} {}", left_type[2], self.op, right_type[2])
-                    return None
-                else:
-                    return (1, 1, "FLOAT")
-            if left_type[2] == "INT" or right_type[2] == "INT":
-                return (1, 1, "INT")
-        elif left_type is None or right_type is None:
-            if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
-                return (1, 1, "FLOAT")
-            elif left_type[2] == "INT" or right_type[2] == "INT":
-                return (1, 1, "INT")
-            elif left_type[2] == "STRING" or right_type[2] == "STRING":
-                return (1, 1, "STRING")
-        else: # Left and Right are None
-            return (1, 1, "INT")
 
 
 class Args_args_expr(Args):
@@ -626,6 +629,8 @@ class Args_expr(Args):
         self.expr.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return self.expr.typecheck(type_table)
 
 class RefExpr_function_call(RefExpr):
@@ -688,6 +693,8 @@ class RefExpr_function_call(RefExpr):
         self.args.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         fn_types = type_table.get_function_types()
 
         if self.ref_id in fn_types:
@@ -705,6 +712,7 @@ class RefExpr_function_call(RefExpr):
                 temp_arr = temp_arr[int(indexes[i])]
 
             self.result_cache = temp_arr[int(indexes[-1])]
+            return type_table
 
 
 class RefExpr_name(RefExpr):
@@ -734,6 +742,8 @@ class RefExpr_name(RefExpr):
         self.ref_id.print(indent + 1)
 
     def get_type(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         print("Searching type table for: ", self.ref_id.get_value())
         if type_table.has_type(self.ref_id.get_value()):
             print("Found ", self.ref_id.get_value(), "type is ", type_table.get_type(self.ref_id.get_value()))
@@ -776,6 +786,8 @@ class ArrayVals_expr(ArrayVals):
         self.expr.print(indent + 1)
     
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return type_table
 
 class ArrayVals_expr_array_vals(ArrayVals):
@@ -811,6 +823,8 @@ class ArrayVals_expr_array_vals(ArrayVals):
         self.array_vals.print(indent + 1)
     
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.expr.typecheck(type_table)
         return self.array_vals.typecheck(tt1)
 
@@ -839,6 +853,8 @@ class ArrayLiteral(Expr):
         return (1, self.array_vals.get_width(), self.array_vals.get_head_type(type_table)[2])
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return self.array_vals.typecheck(type_table)
 
 class IfStatement_no_else(IfStatement):
@@ -852,7 +868,7 @@ class IfStatement_no_else(IfStatement):
         ctx2 = self.cond.eval(ctx)
         ctx3 = ctx2
         cond_type = self.cond.get_type(global_type_table)
-        if cond_type is not "INT":
+        if cond_type != "INT":
             print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
 
@@ -869,6 +885,8 @@ class IfStatement_no_else(IfStatement):
         self.tblock.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.cond.typecheck(type_table)
         return self.tblock.typecheck(tt1)
         
@@ -885,7 +903,7 @@ class IfStatement_else(IfStatement):
         ctx2 = self.cond.eval(ctx)
         ctx3 = ctx2
         cond_type = self.cond.get_type(global_type_table)
-        if cond_type is not "INT":
+        if cond_type != "INT":
             print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
 
@@ -906,6 +924,8 @@ class IfStatement_else(IfStatement):
         self.fblock.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.cond.typecheck(type_table)
         tt2 = self.tblock.typecheck(tt1)
         return self.fblock.typecheck(tt2)
@@ -934,9 +954,11 @@ class IfStatement_elseif(IfStatement):
         self.elseif.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.cond.typecheck(type_table)
         cond_type = self.cond.get_type(tt1)
-        if cond_type is not "INT":
+        if cond_type != "INT":
             print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
         else:
@@ -967,9 +989,11 @@ class Elseif_elseif:
         self.elseif.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.cond.typecheck(type_table)
         cond_type = self.cond.get_type(tt1)
-        if cond_type is not "INT":
+        if cond_type != "INT":
             print("Elseif statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
         else:
@@ -1003,9 +1027,11 @@ class Elseif_else:
         self.fblock.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.cond.typecheck(type_table)
         cond_type = self.cond.get_type(tt1)
-        if cond_type is not "INT":
+        if cond_type != "INT":
             print("Elseif statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
         else:
@@ -1045,6 +1071,8 @@ class ArrayColon(Expr):
         return self.v_type
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.left.typecheck(type_table)
         return self.right.typecheck(tt1)
 
@@ -1071,6 +1099,8 @@ class MatrixRowInner_arr_vals(MatrixRowInner):
         self.arr_vals.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         return self.arr_vals.typecheck(type_table)
 
 
@@ -1101,6 +1131,8 @@ class MatrixRowInner_mri_arr_vals(MatrixRowInner):
         self.arr_vals.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.mri_head.typecheck(type_table)
         return self.arr_vals.typecheck(tt1)
         
@@ -1135,5 +1167,7 @@ class MatrixLiteral:
         self.arr_vals.print(indent + 1)
 
     def typecheck(self, type_table):
+        print(self.__class__.__name__)
+        print(type_table)
         tt1 = self.mri_head.typecheck(type_table)
         return self.arr_vals.typecheck(type_table)
