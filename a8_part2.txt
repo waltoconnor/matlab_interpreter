@@ -1,0 +1,49 @@
+A Type System for a Matlab Interpreter
+By Walt O'Connor, Dave Patterson, and Matt Hall
+
+We define a type system for our Matlab interpreter. 
+Our interpreter is statically typed (except for matrix types). 
+All types in our implementation are of the form (height, width, literal_type),
+where height and width are the numbers of rows or columns in a matrix, 
+respectively, and type is the type of the entries in the structure. 
+Our literal_types include INT, FLOAT, and STRING. Any singleton variable 
+(which are not apart of a vector or matrix) is explicitly typed as 
+(1, 1, literal_type). Similarly, vector types are matrixes with a 
+height of 1. We cast boolean expressions as INT 0  for false and INT 1 for true.
+
+Here are some examples of expressions and their types.
+---
+Variable
+42
+
+Type
+(1, 1, INT)
+----
+Variable
+[42.0, 42.3]
+
+Type
+(1, 2 FLOAT)
+----
+Variable
+[42.0, 42.3; 12.5 35.5]
+
+Type
+(2, 2 FLOAT)
+---
+Variable 
+true 
+
+Type
+(1, 1, INT)
+
+
+Our matrix and vector types are dynamic as they are only checked at runtime. 
+This is because matrix dimensions can be expressions, and we must evaluate them
+to verify their type. 
+
+Our type-checker works as follows. After the AST is created, the type checker runs
+over all nodes in the tree. It checks all variables and verifies their application 
+using a TypeTable, which stores an entry for every variable and function in the AST.
+If an operation occurs between two conflicting types, an error is raised. If no errors
+are raised, then the interpreter executes the program code.
