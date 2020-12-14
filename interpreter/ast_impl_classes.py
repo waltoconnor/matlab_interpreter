@@ -519,33 +519,34 @@ class Expr_binop(Expr):
         if left_type is not None and right_type is not None:
             if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
                 if left_type[2] == "STRING" or right_type[2] == "STRING":
+                    print("INCOMPATIBLE TYPES IN BINOP {} {} {}", left_type[2], self.op, right_type[2])
                     return None
                 else:
                     self.v_type = (1, 1, "FLOAT")
                     return self.v_type
 
             elif left_type[2] == "INT" or right_type[2] == "INT":
-                self.vtype = (1, 1, "INT")
-                return self.vtype
+                self.v_type = (1, 1, "INT")
+                return self.v_type
 
         # If one arg is None, cast the result as the known type. 
         elif left_type is None or right_type is None:
             if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
-                self.vtype = (1, 1, "FLOAT")
-                return self.vtype
+                self.v_type = (1, 1, "FLOAT")
+                return self.v_type
 
             elif left_type[2] == "INT" or right_type[2] == "INT":
-                self.vtype = (1, 1, "INT")
-                return self.vtype
+                self.v_type = (1, 1, "INT")
+                return self.v_type
 
             elif left_type[2] == "STRING" or right_type[2] == "STRING":
-                self.vtype = (1, 1, "STRING")
-                return self.vtype
+                self.v_type = (1, 1, "STRING")
+                return self.v_type
 
         # If both types are unknown cast as (1, 1, "INT")
         else: # Left and Right are None
-            self.vtype = (1, 1, "INT")
-            return self.vtype
+            self.v_type = (1, 1, "INT")
+            return self.v_type
     
     def get_type(self, type_table):
         return self.v_type
