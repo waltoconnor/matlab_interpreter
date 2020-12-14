@@ -25,26 +25,11 @@
 % http://web.mit.edu/dryfoo/Funny-pages/shakespeare-insult-kit.html
 % You can add your own adjectives and nouns, of course.
 % ->  Thou, "adjective 1" "adjective 2" "noun"
- W = [ 'artless' , 'base-court' , 'apple-john'; 'bawdy' , 'bat-fowling' , 'baggage'; 'beslubbering', 'beef-witted' , 'barnacle' ];
-
-%W = [
-%    "artless"     , "base-court"     , "apple-john" ;
-%    "bawdy"       , "bat-fowling"    , "baggage"       ;
-%    "beslubbering", "beef-witted"    , "barnacle"      ;
-%    "bootless"    , "beetle-headed"  , "bladder"       ;
-%    "churlish"    , "boil-brained"   , "boar-pig"      ;
-%    "cockered"    , "clapper-clawed" , "bugbear"       ;
-%    "clouted"     , "clay-brained"   , "bum-bailey"    ;
-%    "craven"      , "common-kissing" , "canker-blossom";
-%    "currish"     , "crook-pated"    , "clack-dish"    ;
-%    "dankish"     , "dismal-dreaming", "clotpole"      ;
-%    "dissembling" , "dizzy-eyed"     , "coxcomb"       ;
-%    "droning"     , "doghearted"     , "codpiece"      ;
-%    "errant"      , "dread-bolted"   , "death-token"   ];
+ W = [ "artless", "base-court", "apple-john"; "bawdy", "bat-fowling", "baggage"; "beslubbering", "beef-witted", "barnacle"; "artless", "base-court", "apple-john"; "bawdy", "bat-fowling", "baggage"; "beslubbering", "beef-witted", "barnacle"; "bootless", "beetle-headed", "bladder"; "churlish", "boil-brained", "boar-pig"; "cockered", "clapper-clawed", "bugbear"; "clouted", "clay-brained", "bum-bailey"; "craven", "common-kissing", "canker-blossom"; "currish", "crook-pated", "clack-dish"; "dankish", "dismal-dreaming", "clotpole"; "dissembling", "dizzy-eyed", "coxcomb"; "droning", "doghearted", "codpiece"; "errant", "dread-bolted", "death-token"   ];
 
 r1 = randi(0, size(W));
 r2 = randi(0, size(W));
 r3 = randi(0, size(W));
 
-print(W(r1, 0) + " " + W(r2, 1) + " " + W(r3, 2));
+print(W(r1, 0) + W(r2, 1) + W(r3, 2));
  
