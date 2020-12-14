@@ -912,14 +912,14 @@ class ArrayColon(Expr):
         self.left = left
         self.right = right
         self.val_cache = []
-        self.type_v = (1, 1, "INT")
+        self.v_type = (1, 1, "INT")
 
     def eval(self, ctx):
         ctx2 = self.left.eval(ctx)
         ctx3 = self.right.eval(ctx2)
 
         self.val_cache = list(range(int(self.left.get_value()), int(self.right.get_value())))
-        self.type_v = (1, len(self.val_cache), "INT")
+        self.v_type = (1, len(self.val_cache), "INT")
         return ctx3
     
     def get_value(self):
@@ -936,7 +936,7 @@ class ArrayColon(Expr):
         self.right.print(indent + 1)
 
     def get_type(self, type_table):
-        return self.type_v
+        return self.v_type
 
 class MatrixRowInner_arr_vals(MatrixRowInner):
     
@@ -993,7 +993,7 @@ class MatrixLiteral:
         self.arr_vals = arr_vals
         self.mri_head = head
         self.val_cache = None
-        self.type_v = (1,1,"INT")
+        self.v_type = (1,1,"INT")
 
     def eval(self, ctx):
         ctx2 = self.mri_head.eval(ctx)
@@ -1005,8 +1005,8 @@ class MatrixLiteral:
         return self.val_cache
 
     def get_type(self, type_table):
-        self.type_v = ((self.mri_head.get_height() + 1), self.arr_vals.get_width(), self.arr_vals.expr.get_type(type_table)[2])
-        return self.type_v
+        self.v_type = ((self.mri_head.get_height() + 1), self.arr_vals.get_width(), self.arr_vals.expr.get_type(type_table)[2])
+        return self.v_type
         
     
     def print(self, indent):

@@ -1,5 +1,5 @@
 m23 = [1, 2, 3; 2, 3, 4]
-ew_mult = m23 .* 2
+ew_mult = m23 * 2
 print(ew_mult)
 
 v13 = [3, 4, 5]
