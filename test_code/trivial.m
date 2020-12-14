@@ -21,9 +21,9 @@ print("finished loop")
 print("trying nested loop with literal")
 print("also trying nested scoping for loops (inner and outer loop both use i)")
 for i = [1 2 3 4]
-    print("outer_loop: "+ str(i))
+    print("outer_loop: "+ to_str(i))
     for i = [6, 7, 8 ,9]
-        print("    " + str(i))
+        print("    " + to_str(i))
     end
 end
 

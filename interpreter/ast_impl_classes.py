@@ -32,6 +32,9 @@ class TypeTable:
     def has_type(self, var):
         return var in self.ttable
 
+    def remove_type(self, var):
+        del self.ttable[var]
+
     def get_fn_parameter_type(self, name):
         return self.function_types.get_func_param_type(name)
 
@@ -286,11 +289,23 @@ class Assign_ref_exp(Assign):
         print(self.__class__.__name__)
         print(type_table)
         self.expr.typecheck(type_table)
-        if type_table.set_type(self.ref.get_name(), self.expr.get_type(type_table)):
-            return type_table
+        if self.ref.ref_type == "NAME":
+            if type_table.set_type(self.ref.get_name(), self.expr.get_type(type_table)):
+                return type_table
+            else:
+                print("ASSIGN ERROR, CANNOT ASSIGN {} TO {} ({})".format(self.expr.get_type(type_table), self.ref.get_name(), type_table.get_type(self.ref.get_name())))
+                return None
         else:
-            print("ASSIGN ERROR (TODO: WRITE OUT ERROR)")
-            return None
+            if self.ref.get_type(type_table) == self.expr.get_type(type_table):
+                return type_table
+            else:
+                rtype = self.ref.get_type(type_table)
+                etype = self.expr.get_type(type_table)
+                rname = self.ref.get_name()
+                print("UNABLE TO ASSIGN {} to {}() (accessor type = {})".format(etype, rname, rtype))
+
+    def get_expr_type(self, type_table):
+        return self.expr.get_type(type_table)
 
 
 class Statement_for(Statement):
@@ -302,6 +317,7 @@ class Statement_for(Statement):
         self.statements = stmts
     
     def eval(self, ctx):
+        global global_type_table
         ctx2 = self.assign.eval(ctx) #this variable only exists for the lifetime of the loop, and we are manually handling its context, so we only need this to do side effects
         self.index_var = self.assign.get_ref()
         self.range_vals = self.assign.get_value()
@@ -309,11 +325,20 @@ class Statement_for(Statement):
         ctx2.clear_var_in_frame(self.index_var)
         #at this point, the variable from the assign is set to the iteration range in ctx2, we need to overwrite that
 
+        global_type_table.remove_type(self.index_var)
+        print("INDEX VAR")
+        print(self.index_var)
+        input_type = self.assign.get_expr_type(global_type_table)
+        print("ASSIGN")
+        print(input_type)
+        global_type_table.set_type(self.index_var, (1, input_type[1], input_type[2]))
         for elem in self.range_vals:
             ctx2.push_frame()
             ctx2.update_stack(self.index_var, elem)
             ctx2 = self.statements.eval(ctx2) #handle it like this to allow accumulators in the loop
             ctx2.pop_frame()
+        
+        global_type_table.remove_type(self.index_var)
 
         return ctx2 
 
@@ -323,6 +348,12 @@ class Statement_for(Statement):
         self.assign.print(indent+1)
         print(indent_str("-body:", indent))
         self.statements.print(indent+1)
+
+    def typecheck(self, type_table):
+        #assume iterator is good, check it at runtime
+        return self.statements.typecheck(type_table)
+
+
 
 
 class Name:
@@ -551,6 +582,7 @@ class Expr_binop(Expr):
             elif left_type[2] == "INT" or right_type[2] == "INT":
                 self.v_type = (1, 1, "INT")
                 return type_table
+
             return type_table
         # If one arg is None, cast the result as the known type. 
         elif left_type is None or right_type is None:
@@ -602,6 +634,9 @@ class Args_args_expr(Args):
         self.args.print(indent + 1)
         print(indent_str("arg_tail: ", indent))
         self.expr.print(indent + 1)
+    
+    def get_length(self):
+        return 1 + self.args.get_length()
 
 
 
@@ -632,6 +667,9 @@ class Args_expr(Args):
         print(self.__class__.__name__)
         print(type_table)
         return self.expr.typecheck(type_table)
+    
+    def get_length(self):
+        return 1
 
 class RefExpr_function_call(RefExpr):
 
@@ -640,6 +678,7 @@ class RefExpr_function_call(RefExpr):
         self.args = args
         self.args_val_cache = None
         self.is_array = False
+        self.ref_type = "FCALL"
 
     def eval(self, ctx):
         ctx2 = self.args.eval(ctx) if self.args != None else ctx
@@ -695,24 +734,28 @@ class RefExpr_function_call(RefExpr):
     def typecheck(self, type_table):
         print(self.__class__.__name__)
         print(type_table)
+        return type_table
+
+    def get_type(self, type_table):
         fn_types = type_table.get_function_types()
-
+        print("TABLE")
+        print(fn_types.func_ttable)
+        print(self.ref_id)
         if self.ref_id in fn_types:
-            type_table.set_type(self.ref_id, type_table.get_fn_type(self.ref_id))
-            return type_table
-        else: 
-            ## TODO, assign get array dimensions and add to the type table.
+            print("FUNCTION CALL")
+            return fn_types.get_func_res_type(self.ref_id)
 
-            type_table.set_type(self.ref_id, ())
+        else:
+            print("ARRAY SET")
+            arrtype = type_table.get_type(self.ref_id)
+            print(arrtype)
+            if self.args.get_length() == 1:
+                print((1, arrtype[0], arrtype[2]))
+                return (1, arrtype[0], arrtype[2])
+            elif self.args.get_length() == 2:
+                return (1, 1, arrtype[2])
 
-            indexes = self.args_val_cache
-            cur_arr = ctx.search_stack(self.ref_id)
-            temp_arr = cur_arr
-            for i in range(0, len(indexes) - 1):
-                temp_arr = temp_arr[int(indexes[i])]
 
-            self.result_cache = temp_arr[int(indexes[-1])]
-            return type_table
 
 
 class RefExpr_name(RefExpr):
@@ -722,6 +765,7 @@ class RefExpr_name(RefExpr):
         self.ref_id = name
         self.val = None
         self.v_type = None
+        self.ref_type = "NAME"
 
     def eval(self, ctx):
         self.val = ctx.search_stack(self.ref_id.get_value())
@@ -867,7 +911,7 @@ class IfStatement_no_else(IfStatement):
         global global_type_table
         ctx2 = self.cond.eval(ctx)
         ctx3 = ctx2
-        cond_type = self.cond.get_type(global_type_table)
+        cond_type = self.cond.get_type(global_type_table)[2]
         if cond_type != "INT":
             print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
@@ -902,7 +946,7 @@ class IfStatement_else(IfStatement):
         global global_type_table
         ctx2 = self.cond.eval(ctx)
         ctx3 = ctx2
-        cond_type = self.cond.get_type(global_type_table)
+        cond_type = self.cond.get_type(global_type_table)[2]
         if cond_type != "INT":
             print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
@@ -957,7 +1001,7 @@ class IfStatement_elseif(IfStatement):
         print(self.__class__.__name__)
         print(type_table)
         tt1 = self.cond.typecheck(type_table)
-        cond_type = self.cond.get_type(tt1)
+        cond_type = self.cond.get_type(tt1)[2]
         if cond_type != "INT":
             print("If statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
@@ -992,7 +1036,7 @@ class Elseif_elseif:
         print(self.__class__.__name__)
         print(type_table)
         tt1 = self.cond.typecheck(type_table)
-        cond_type = self.cond.get_type(tt1)
+        cond_type = self.cond.get_type(tt1)[2]
         if cond_type != "INT":
             print("Elseif statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
@@ -1030,7 +1074,7 @@ class Elseif_else:
         print(self.__class__.__name__)
         print(type_table)
         tt1 = self.cond.typecheck(type_table)
-        cond_type = self.cond.get_type(tt1)
+        cond_type = self.cond.get_type(tt1)[2]
         if cond_type != "INT":
             print("Elseif statement provided with {} instead of conditional returning an integer".format(cond_type))
             return None
