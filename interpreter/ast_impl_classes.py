@@ -777,7 +777,10 @@ class ArrayLiteral(Expr):
     
     def get_value(self):
         return self.result_cache
-    
+
+    def get_size(self):
+        return (self.v_type[0], self.v_type[1])
+
     def print(self, indent):
         print(indent_str("ArrayLiteral:", indent))
         self.array_vals.print(indent + 1)
