@@ -772,11 +772,11 @@ class RefExpr_function_call(RefExpr):
             return fn_types.get_func_res_type(self.ref_id)
 
         else:
-            print("ARRAY SET")
+            #print("ARRAY SET")
             arrtype = type_table.get_type(self.ref_id)
-            print(arrtype)
+            #print(arrtype)
             if self.args.get_length() == 1:
-                print((1, arrtype[0], arrtype[2]))
+                #print((1, arrtype[0], arrtype[2]))
                 return (1, arrtype[0], arrtype[2])
             elif self.args.get_length() == 2:
                 return (1, 1, arrtype[2])

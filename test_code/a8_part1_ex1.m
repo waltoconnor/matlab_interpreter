@@ -3,7 +3,7 @@ print("starting list: ");
 print(arr);
 
 n = size(arr);
-
+print("starting sort");
 for i = 0:n
     for j = 0:(n-1)
         if arr(j) > arr(j+1)
