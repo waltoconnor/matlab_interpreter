@@ -9,7 +9,7 @@ respectively, and type is the type of the entries in the structure.
 Our literal_types include INT, FLOAT, and STRING. Any singleton variable 
 (which are not apart of a vector or matrix) is explicitly typed as 
 (1, 1, literal_type). Similarly, vector types are matrixes with a 
-height of 1. We cast boolean expressions as INT 0  for false and INT 1 for true.
+height or width of 1. We cast boolean expressions as INT 0 for false and INT 1 for true.
 
 Here are some examples of expressions and their types.
 ---
@@ -17,25 +17,31 @@ Variable
 42
 
 Type
-(1, 1, INT)
+(1, 1, "INT")
+---
+Variable
+"the answer to Life, the Universe, and everything"
+
+Type
+(1, 1, "STRING")
 ----
 Variable
 [42.0, 42.3]
 
 Type
-(1, 2 FLOAT)
+(1, 2 "FLOAT")
 ----
 Variable
 [42.0, 42.3; 12.5 35.5]
 
 Type
-(2, 2 FLOAT)
+(2, 2 "FLOAT")
 ---
 Variable 
 true 
 
 Type
-(1, 1, INT)
+(1, 1, "INT")
 
 
 Our matrix and vector types are dynamic as they are only checked at runtime. 
