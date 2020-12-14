@@ -410,17 +410,26 @@ class Expr_binop(Expr):
         }
 
         scalar_matrix_ops = {
-            '+': (lambda a,B: [[a + B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
-            '-': (lambda a,B: [[a - B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
-            '/': (lambda a,B: [[a / B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
-            '*': (lambda a,B: [[a * B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+             '+': (lambda a,B: [[a + B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            '.+': (lambda a,B: [[a + B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+             '-': (lambda a,B: [[a - B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            '.-': (lambda a,B: [[a - B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+             '*': (lambda a,B: [[a * B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            '.*': (lambda a,B: [[a * B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+             '/': (lambda a,B: [[a / B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            './': (lambda a,B: [[a / B[i][j] for j in range(len(B[0]))] for i in range(len(B))]),
+            
         }
 
         matrix_scalar_ops = {
-            '+': (lambda A,b: [[A[i][j] + b for j in range(len(A[0]))] for i in range(len(A))]),
-            '-': (lambda A,b: [[A[i][j] - b for j in range(len(A[0]))] for i in range(len(A))]),
-            '/': (lambda A,b: [[A[i][j] / b for j in range(len(A[0]))] for i in range(len(A))]),
-            '*': (lambda A,b: [[A[i][j] * b for j in range(len(A[0]))] for i in range(len(A))]),
+             '+': (lambda A,b: [[A[i][j] + b for j in range(len(A[0]))] for i in range(len(A))]),
+            '.+': (lambda A,b: [[A[i][j] + b for j in range(len(A[0]))] for i in range(len(A))]),
+             '-': (lambda A,b: [[A[i][j] - b for j in range(len(A[0]))] for i in range(len(A))]),
+            '.-': (lambda A,b: [[A[i][j] - b for j in range(len(A[0]))] for i in range(len(A))]),
+             '/': (lambda A,b: [[A[i][j] / b for j in range(len(A[0]))] for i in range(len(A))]),
+            './': (lambda A,b: [[A[i][j] / b for j in range(len(A[0]))] for i in range(len(A))]),
+             '*': (lambda A,b: [[A[i][j] * b for j in range(len(A[0]))] for i in range(len(A))]),
+            '.*': (lambda A,b: [[A[i][j] * b for j in range(len(A[0]))] for i in range(len(A))]),
         }
 
         matrix_ops = {
@@ -497,6 +506,37 @@ class Expr_binop(Expr):
         print(indent_str("right:", indent))
         self.right.print(indent + 1)
 
+    def typecheck(self, type_table):
+        
+        left_type = self.left.get_type(global_type_table)
+        right_type = self.right.get_type(global_type_table)
+
+        # Make sure we don't mix string and numeric types.
+        if left_type is not None and right_type is not None:
+            if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
+                if left_type[2] == "STRING" or right_type[2] == "STRING":
+                    return None
+                else:
+                    return (1, 1, "FLOAT")
+
+            elif left_type[2] == "INT" or right_type[2] == "INT":
+                return (1, 1, "INT")
+
+        # If one arg is None, cast the result as the known type. 
+        elif left_type is None or right_type is None:
+            if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
+                return (1, 1, "FLOAT")
+            
+            elif left_type[2] == "INT" or right_type[2] == "INT":
+                return (1, 1, "INT")
+            
+            elif left_type[2] == "STRING" or right_type[2] == "STRING":
+                return (1, 1, "STRING")
+        
+        # If both types are unknown cast as (1, 1, "INT")
+        else: # Left and Right are None
+            return (1, 1, "INT")
+    
     def get_type(self, type_table):
         return self.v_type
 
