@@ -460,7 +460,7 @@ class Expr_binop(Expr):
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
             self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)      
+            self.v_type = (left_m, left_n, self.v_type[2])      
             
         
         # Commutative matrix operations
@@ -469,24 +469,24 @@ class Expr_binop(Expr):
             and self.op not in ["*", "/"]:
 
             self.result = matrix_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)        
+            self.v_type = (left_m, left_n, self.v_type[2])        
 
         # Matrix multiplication
         elif left_n == right_m \
             and self.op == "*":
 
             self.result = matrix_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, right_n, left_type)        
+            self.v_type = (left_m, right_n, self.v_type[2])        
 
         # Scalar/matrix math
         elif left_n == right_n == 1:
             self.result = scalar_matrix_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (right_m, right_n, left_type)        
+            self.v_type = (right_m, right_n, self.v_type[2])        
 
         # matrix/scalar math
         elif left_m == right_n == 1:
             self.result = matrix_scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)
+            self.v_type = (left_m, left_n, self.v_type[2])
         
         else:
             print("TYPE ERROR, cannot compute operation: {} on {}x{} {} with {}x{} {}".format(self.op, left_m, left_n, left_type, right_m, right_n, right_type))
