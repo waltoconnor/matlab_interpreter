@@ -20,7 +20,7 @@ Type
 (1, 1, "INT")
 ---
 Variable
-"the answer to Life, the Universe, and everything"
+"the answer to Life, the Universe, and Everything"
 
 Type
 (1, 1, "STRING")
