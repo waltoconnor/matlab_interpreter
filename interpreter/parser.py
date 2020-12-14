@@ -254,7 +254,7 @@ if __name__ == '__main__':
     type_table = TypeTable()
     final_type_table = result.typecheck(type_table)
     if final_type_table is not None:
-        print("=== PASSED  TYPECHECK ===")
+        print("=== PASSED PHASE 1 TYPECHECK ===")
         print("Variables with None type are dpendent types and will be determined at runtime")
         print(type_table.ttable)
     else:

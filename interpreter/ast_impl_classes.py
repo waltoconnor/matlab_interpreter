@@ -27,6 +27,11 @@ class TypeTable:
         return self.ttable[var] == type_str
 
     def get_type(self, var):
+        if var not in self.ttable:
+            print("VAR {} NOT IN TYPE TABLE".format(var))
+            print(self.ttable)
+            return
+
         return self.ttable[var]
 
     def has_type(self, var):
@@ -331,7 +336,11 @@ class Statement_for(Statement):
         input_type = self.assign.get_expr_type(global_type_table)
         print("ASSIGN")
         print(input_type)
-        global_type_table.set_type(self.index_var, (1, input_type[1], input_type[2]))
+        print("UPDATING INDEX VAR TYPE")
+        print((1, input_type[0], input_type[2]))
+        
+        global_type_table.set_type(self.index_var, (1, input_type[0], input_type[2]))
+        print(global_type_table.ttable)
         for elem in self.range_vals:
             ctx2.push_frame()
             ctx2.update_stack(self.index_var, elem)
@@ -507,13 +516,16 @@ class Expr_binop(Expr):
         print("LEFT ", self.left.get_value(), "TYPE ", self.left.get_type(global_type_table))
         print("RIGHT ", self.right.get_value(), "TYPE ", self.right.get_type(global_type_table))
 
+        if self.v_type is None:
+            self.v_type = self.left.get_type(global_type_table)
+
         left_m, left_n, left_type = self.left.get_type(global_type_table)
         right_m, right_n, right_type = self.right.get_type(global_type_table)
 
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
             self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, self.v_type[2])      
+            self.v_type = (left_m, left_n, self.v_type[2])    
             
         
         # Commutative matrix operations

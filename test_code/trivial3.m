@@ -13,3 +13,7 @@ end
 for j = b
     print(j)
 end
+
+s1 = "hi";
+s2 = "test";
+print((s1) + (s2))
