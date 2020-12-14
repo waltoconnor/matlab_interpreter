@@ -16,4 +16,9 @@ end
 
 s1 = "hi";
 s2 = "test";
-print((s1) + (s2))
+
+for i = [1, 2, 3]
+    for i = [4, 5, 6]
+        print(i);
+    end
+end

@@ -46,5 +46,5 @@ r1 = randi(0, size(W));
 r2 = randi(0, size(W));
 r3 = randi(0, size(W));
 
-print(W(r1, 0) + W(r2, 1) + W(r3, 2));
+print(W(r1, 0) + " " + W(r2, 1) + " " + W(r3, 2));
  

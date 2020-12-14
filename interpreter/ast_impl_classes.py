@@ -38,7 +38,8 @@ class TypeTable:
         return var in self.ttable
 
     def remove_type(self, var):
-        del self.ttable[var]
+        if var in self.ttable:
+            del self.ttable[var]
 
     def get_fn_parameter_type(self, name):
         return self.function_types.get_func_param_type(name)
@@ -418,7 +419,7 @@ class Expr_number(Expr):
 class Expr_string(Expr):
     
     def __init__(self, val):
-        self.val = str(val)
+        self.val = str(val)[1:-1]
         self.v_type = (1, 1, "STRING")
 
     def eval(self, ctx):
