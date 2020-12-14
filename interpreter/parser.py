@@ -264,6 +264,6 @@ if __name__ == '__main__':
     ctx = Context()
     print("===== BEGIN PROGRAM =====")
     final_ctx = result.eval(ctx)
-    print("====== END PROGRAM ======")
+    
     print(final_ctx)
     final_ctx.print()
