@@ -567,7 +567,6 @@ class RefExpr_function_call(RefExpr):
             self.is_array = False
             
         else:
-            arr = ctx2.search_stack(self.ref_id)
             self.is_array = True
 
             indexes = self.args_val_cache
@@ -613,6 +612,7 @@ class RefExpr_function_call(RefExpr):
 
         if self.ref_id in fn_types:
             type_table.set_type(self.ref_id, type_table.get_fn_type(self.ref_id))
+            return type_table
         else: 
             ## TODO, assign get array dimensions and add to the type table.
 
