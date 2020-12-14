@@ -452,7 +452,7 @@ class Expr_binop(Expr):
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
             self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, left_type)      
+            self.v_type = (left_m, left_n, left_type)
             
         
         # Commutative matrix operations
@@ -990,7 +990,7 @@ class ArrayColon(Expr):
 
     def typecheck(self, type_table):
         tt1 = self.left.typecheck(type_table)
-        return self.right.typecheck(tt2)
+        return self.right.typecheck(tt1)
 
 class MatrixRowInner_arr_vals(MatrixRowInner):
     
