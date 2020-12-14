@@ -1,0 +1,3 @@
+install Sly via pip
+run with
+python3 ./interpreter/parser.py [FILENAME]
