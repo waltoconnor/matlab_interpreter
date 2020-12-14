@@ -513,9 +513,8 @@ class Expr_binop(Expr):
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
             self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
-            self.v_type = (left_m, left_n, self.v_type[2])      
-            
-        
+            self.v_type = (left_m, left_n, self.v_type[2])            
+    
         # Commutative matrix operations
         elif left_m == right_m \
             and left_n == right_n \
@@ -580,10 +579,23 @@ class Expr_binop(Expr):
                     return type_table
 
             elif left_type[2] == "INT" or right_type[2] == "INT":
-                self.v_type = (1, 1, "INT")
+                if left_type[2] == "STRING" or right_type[2] == "STRING":
+                    print("INCOMPATIBLE TYPES IN BINOP {} {} {}", left_type[2], self.op, right_type[2])
+                    return None
+                else:
+                    self.v_type = (1, 1, "INT")
+                    return type_table
+
+            elif left_type[2] == "STRING" or right_type[2] == "STRING":
+                self.v_type = (1, 1, "STRING")
                 return type_table
 
+            else:
+                print("INCOMPATIBLE TYPES IN BINOP {} {} {}", left_type[2], self.op, right_type[2])
+                return None
+
             return type_table
+
         # If one arg is None, cast the result as the known type. 
         elif left_type is None or right_type is None:
             if left_type[2] == "FLOAT" or right_type[2] == "FLOAT":
