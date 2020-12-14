@@ -41,12 +41,12 @@ fn_type_table.set_type('sum', (1, 1, "INT"), (1, 1, "INT"))
 
 str_fn = lambda x: str(x[0])
 fn_table['str'] = str_fn
-fn_type_table.set_type('print', (1, 1, "STRING"), (1, 1, "STRING"))
+fn_type_table.set_type('str', (1, 1, "STRING"), (1, 1, "STRING"))
 
 randi_fn = lambda x: randrange(x[0], x[1])
 fn_table['randi'] = randi_fn
-fn_type_table.set_type('sum', (1, 2, "INT"), (1, 1, "INT"))
+fn_type_table.set_type('randi', (1, 2, "INT"), (1, 1, "INT"))
 
 size_fn = lambda x: len(x[0])
 fn_table['size'] = size_fn
-fn_type_table.set_type('sum', (1, 1, "INT"), (1, 1, "INT"))
+fn_type_table.set_type('size', (1, 1, "INT"), (1, 1, "INT"))
