@@ -1,0 +1,31 @@
+v13 = [3, 4, 5]
+v21 = [3; 4]
+m22 = [3, 4; 4, 5]
+m23 = [1, 2, 3; 2, 3, 4]
+m32 = [1, 2; 2, 3; 3, 4] // m23'
+
+% scalar multiplication
+ew_mult = m23 .* 2
+% ew_mult = [2     4     6; 4     6     8]
+
+% matrix element-wise times row vector
+ew_mult2 = m23 .* v13
+% ew_mult2 = [3     8    15; 6    12    20]
+
+% matrix element-wise times column vector
+ew_mult3 = m23 .* v21
+% ew_mult3 = [3     6     9;  8    12    16]
+
+mat_mult = m22 * m23
+% mat_mult = [11    18    25;  14    23    32]
+
+% matrix times matrix
+mat_mult2 = m22 * m22
+% mat_mult2 = [25    32; 32    41]
+
+mat_mult3 = m32 * m23
+% mat_mult3 = [5     8    11; 8    13    18; 11    18    25]
+
+mat_mult3 = m23 * m32
+% mat_mult3 = [14    20; 20    29]
+
