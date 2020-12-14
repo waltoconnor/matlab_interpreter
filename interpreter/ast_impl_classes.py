@@ -1,6 +1,8 @@
 from ast_abstract_classes import *
 from std_lib import fn_table, fn_type_table
 
+global_type_table = None
+
 class TypeTable:
 
     def __init__(self):
@@ -24,11 +26,14 @@ class TypeTable:
     def get_type(self, var):
         return self.ttable[var]
 
+    def has_type(self, var):
+        return var in self.ttable
+
     def get_fn_parameter_type(self, name):
-        return self.fn_type_table.get_func_param_type(name)
+        return self.function_types.get_func_param_type(name)
 
     def get_fn_type(self, name):
-        return self.fn_type_table.get_func_res_type(name)
+        return self.function_types.get_func_res_type(name)
 
     def fn_type_compatible(self, fn_name, param_type, res_type):
         return param_type == self.get_fn_parameter_type(fn_name) \
@@ -103,7 +108,10 @@ class Program:
         self.statements.print(1)
 
     def typecheck(self, type_table):
-        return self.statements.typecheck(type_table)
+        global global_type_table 
+        global_type_table = self.statements.typecheck(type_table)
+        print(global_type_table)
+        return global_type_table
 
 class Statements_stmt_stmts(Statements):
 
@@ -123,7 +131,7 @@ class Statements_stmt_stmts(Statements):
         self.tail.print(indent + 1)
 
     def typecheck(self, type_table):
-        tt2 = self.head.typecheck(self, type_table)
+        tt2 = self.head.typecheck(type_table)
         if tt2 is None:
             return None
         return self.tail.typecheck(tt2)
@@ -167,7 +175,7 @@ class Statements_stmt(Statements):
         self.head.print(indent + 1)
     
     def typecheck(self, type_table):
-        return head.typecheck(type_table)
+        return self.head.typecheck(type_table)
 
 class Statement_empty(Statement):
     def __init__(self):
@@ -374,6 +382,7 @@ class Expr_binop(Expr):
         self.v_type = None
     
     def eval(self, ctx):
+        global global_type_table
         ctx2 = self.left.eval(ctx)
         ctx3 = self.right.eval(ctx2)
 
@@ -422,13 +431,15 @@ class Expr_binop(Expr):
             '&&': (lambda A,B: [[(1 if A[i][j] == 1 and  B[i][j] == 1 else 0) for j in range(len(A[0]))] for i in range(len(A))])
         }
 
-        # unpack dimensions and type from left and right expressions        
-        left_m, left_n, left_type = self.left.get_type()
-        right_m, right_n, right_type = self.left.get_type()
+        # unpack dimensions and type from left and right expressions    
+        print("GLOBAL TYPE TABLE")
+        print(global_type_table)    
+        left_m, left_n, left_type = self.left.get_type(global_type_table)
+        right_m, right_n, right_type = self.right.get_type(global_type_table)
 
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
-            self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
+            self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value(global_type_table))
             self.v_type = (left_m, left_n, left_type)        
         
         # Commutative matrix operations
@@ -629,10 +640,10 @@ class RefExpr_name(RefExpr):
         self.ref_id.print(indent + 1)
 
     def get_type(self, type_table):
-        if self.val in type_table[self.ref_id]:
-            return type_table[self.ref_id]
-        else: 
-            return self.v_type
+        if type_table.has_type(self.ref_id):
+            return type_table.get_type(self.ref_id)
+        else:
+            return None
 
 
 
@@ -653,6 +664,9 @@ class ArrayVals_expr(ArrayVals):
     
     def get_values(self):
         return [self.result_cache]
+
+    def get_width(self):
+        return 1
     
     def print(self, indent):
         print(indent_str("ArrayVal expr:", indent))
@@ -664,7 +678,7 @@ class ArrayVals_expr_array_vals(ArrayVals):
         self.expr = expr 
         self.array_vals = array_vals
         self.array_type = None
-        self.result_cache = None
+        self.result_cache = []
     
     def eval(self, ctx):
         ctx2 = self.expr.eval(ctx)
@@ -676,6 +690,9 @@ class ArrayVals_expr_array_vals(ArrayVals):
     
     def get_values(self):
         return self.result_cache
+
+    def get_width(self):
+        return len(self.result_cache)
     
     def print(self, indent):
         print(indent_str("ArrayVal expr:", indent))
@@ -684,7 +701,7 @@ class ArrayVals_expr_array_vals(ArrayVals):
         print(indent_str("-tail:", indent))
         self.array_vals.print(indent + 1)
 
-class ArrayLiteral:
+class ArrayLiteral(Expr):
     
     def __init__(self, values: ArrayVals):
         self.array_vals = values
@@ -701,6 +718,10 @@ class ArrayLiteral:
     def print(self, indent):
         print(indent_str("ArrayLiteral:", indent))
         self.array_vals.print(indent + 1)
+
+    def get_type(self, type_table):
+        return (1, len(self.array_vals), self.array_vals[0].get_type(type_table)[2])
+
 
 class IfStatement_no_else(IfStatement):
 
@@ -827,17 +848,22 @@ class ArrayColon(Expr):
     def __init__(self, left, right):
         self.left = left
         self.right = right
-        self.val_cache = None
+        self.val_cache = []
+        self.type_v = (1, 1, "INT")
 
     def eval(self, ctx):
         ctx2 = self.left.eval(ctx)
         ctx3 = self.right.eval(ctx2)
 
         self.val_cache = list(range(int(self.left.get_value()), int(self.right.get_value())))
+        self.type_v = (1, len(self.val_cache), "INT")
         return ctx3
     
     def get_value(self):
         return self.val_cache
+
+    def get_width(self):
+        return len(self.val_cache)
     
     def print(self, indent):
         print(indent_str("ArrayLiteral colon:", indent))
@@ -847,7 +873,7 @@ class ArrayColon(Expr):
         self.right.print(indent + 1)
 
     def get_type(self, type_table):
-        return (1, 1, "INT")
+        return self.type_v
 
 class MatrixRowInner_arr_vals(MatrixRowInner):
     
@@ -862,6 +888,9 @@ class MatrixRowInner_arr_vals(MatrixRowInner):
     
     def get_values(self):
         return self.val_cache
+    
+    def get_height(self):
+        return 1
     
     def print(self, indent):
         print(indent_str("Matrix Row arr vals:", indent))
@@ -883,6 +912,9 @@ class MatrixRowInner_mri_arr_vals(MatrixRowInner):
     
     def get_values(self):
         return self.val_cache
+
+    def get_height(self):
+        return 1 + self.mri_head.get_height()
     
     def print(self, indent):
         print(indent_str("Matrix Row mri arr vals:", indent))
@@ -898,6 +930,7 @@ class MatrixLiteral:
         self.arr_vals = arr_vals
         self.mri_head = head
         self.val_cache = None
+        self.type_v = (1,1,"INT")
 
     def eval(self, ctx):
         ctx2 = self.mri_head.eval(ctx)
@@ -907,6 +940,11 @@ class MatrixLiteral:
     
     def get_value(self):
         return self.val_cache
+
+    def get_type(self, type_table):
+        self.type_v = ((self.mri_head.get_height() + 1), self.arr_vals.get_width(), self.arr_vals.expr.get_type(type_table)[2])
+        return self.type_v
+        
     
     def print(self, indent):
         print(indent_str("Matrix Row mri arr vals:", indent))

@@ -251,7 +251,13 @@ if __name__ == '__main__':
         
 
     result.print()
-
+    type_table = TypeTable()
+    final_type_table = result.typecheck(type_table)
+    if final_type_table is not None:
+        print("=== PASSED  TYPECHECK ===")
+    else:
+        print("=== FAILED  TYPECHECK ===")
+        exit(1)
     ctx = Context()
     print("===== BEGIN PROGRAM =====")
     final_ctx = result.eval(ctx)
