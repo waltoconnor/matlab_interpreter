@@ -433,13 +433,16 @@ class Expr_binop(Expr):
 
         # unpack dimensions and type from left and right expressions    
         print("GLOBAL TYPE TABLE")
-        print(global_type_table)    
+        print(global_type_table)
+        print("LEFT ", self.left.get_value(), "TYPE ", self.left.get_type(global_type_table))
+        print("RIGHT ", self.right.get_value(), "TYPE ", self.right.get_type(global_type_table))
+
         left_m, left_n, left_type = self.left.get_type(global_type_table)
         right_m, right_n, right_type = self.right.get_type(global_type_table)
 
         # Scalar to scalar operations
         if left_m == left_n == right_m == right_n == 1:
-            self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value(global_type_table))
+            self.result = scalar_ops[self.op](self.left.get_value(), self.right.get_value())
             self.v_type = (left_m, left_n, left_type)        
         
         # Commutative matrix operations
@@ -640,9 +643,12 @@ class RefExpr_name(RefExpr):
         self.ref_id.print(indent + 1)
 
     def get_type(self, type_table):
-        if type_table.has_type(self.ref_id):
-            return type_table.get_type(self.ref_id)
+        print("Searching type table for: ", self.ref_id.get_value())
+        if type_table.has_type(self.ref_id.get_value()):
+            print("Found ", self.ref_id.get_value(), "type is ", type_table.get_type(self.ref_id.get_value()))
+            return type_table.get_type(self.ref_id.get_value())
         else:
+            print("Could not Find ", self.ref_id.get_value())
             return None
 
 

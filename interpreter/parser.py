@@ -255,8 +255,10 @@ if __name__ == '__main__':
     final_type_table = result.typecheck(type_table)
     if final_type_table is not None:
         print("=== PASSED  TYPECHECK ===")
+        print(type_table.ttable)
     else:
         print("=== FAILED  TYPECHECK ===")
+        print(type_table.ttable)
         exit(1)
     ctx = Context()
     print("===== BEGIN PROGRAM =====")
