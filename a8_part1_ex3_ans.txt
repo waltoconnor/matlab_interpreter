@@ -5,15 +5,17 @@ m23 = [1, 2, 3; 2, 3, 4]
 m32 = [1, 2; 2, 3; 3, 4] // m23'
 
 % scalar multiplication
-ew_mult = m23 .* 2
+ew_mult = m23 * 2
 % ew_mult = [2     4     6; 4     6     8]
 
 % matrix element-wise times row vector
 ew_mult2 = m23 .* v13
+% not implemented
 % ew_mult2 = [3     8    15; 6    12    20]
 
 % matrix element-wise times column vector
 ew_mult3 = m23 .* v21
+% not implemented
 % ew_mult3 = [3     6     9;  8    12    16]
 
 mat_mult = m22 * m23
